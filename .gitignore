@@ -1,0 +1,22 @@
+infrastructure/zigbee2mqtt/data/*
+
+infrastructure/mosquitto/data/*
+infrastructure/mosquitto/log/*
+
+build/
+.vscode/
+*.o
+*.out
+
+.DS_Store
+
+# Editor Noise
+*.sw
+*~
+.vscode/
+
+# Ignore backups
+*.backup
+*_backup_*.yml
+*_backup_*.yaml
+*.old
