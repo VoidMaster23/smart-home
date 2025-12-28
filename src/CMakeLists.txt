@@ -11,17 +11,21 @@ include(sources.cmake)
 
 # --- 2. Find Dependencies ---
 find_package(nlohmann_json 3.2.0 REQUIRED)
-find_library(PAHO_MQTT_LIB paho-mqtt3c REQUIRED)
+find_package(PahoMqttCpp REQUIRED)
+
+find_library(PAHO_MQTT_LIB paho-mqtt3a REQUIRED)
+find_path(PAHO_MQTT_C_INCLUDE_DIR MQTTAsync.h REQUIRED)
 
 # --- 3. Create Executable ---
 add_executable(controller ${SOURCES})
 
 # --- 4. Include Directories ---
-target_include_directories(controller PRIVATE include)
+target_include_directories(controller PRIVATE include ${PAHO_MQTT_C_INCLUDE_DIR})
 
 # --- 5. Link Libraries ---
 target_link_libraries(controller PRIVATE
     nlohmann_json::nlohmann_json
+    PahoMqttCpp::paho-mqttpp3
     ${PAHO_MQTT_LIB}
 )
 

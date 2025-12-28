@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
     libpaho-mqtt-dev \
     nlohmann-json3-dev \
     libgtest-dev \
+    libssl-dev \
     && rm -rf /var/lib/apt/lists/*
 
 RUN cd /usr/src/googletest \
@@ -19,7 +20,15 @@ RUN cd /usr/src/googletest \
     && cp lib/*.a /usr/lib/ \
     && ldconfig
 
-WORKDIR /app
+RUN git clone https://github.com/eclipse/paho.mqtt.cpp.git \
+    && cd paho.mqtt.cpp \
+    && mkdir build && cd build \
+    && cmake .. -DPAHO_BUILD_DOCUMENTATION=FALSE -DPAHO_BUILD_SAMPLES=FALSE \
+    && make -j$(nproc) \
+    && make install \
+    && ldconfig
+
+    WORKDIR /app
 
 #copy source code
 COPY generate_sources.py .
@@ -36,9 +45,8 @@ RUN mkdir build && cd build \
 
 FROM ubuntu:latest
 
-RUN apt-get update && apt-get install -y \
-    libpaho-mqtt-dev \
-    && rm -rf /var/lib/apt/lists/*
+COPY --from=builder /usr/local/lib/libpaho-mqttpp3.so.1 /usr/lib/
+RUN ldconfig
 
 WORKDIR /app
 COPY --from=builder /app/build/controller .

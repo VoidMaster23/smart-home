@@ -47,7 +47,21 @@ Plug in your zigbee stick to your computer. I used a USB extension cable because
 ### 3. Identify the dongle
 ```bash
 ls -l /dev/serial/by-id/
-``` 
+```
+This will output something like: 
+```bash
+ usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0 ⇒ ../../ttyUSB0
+ ```
+
+ Update the `devices` section in the `docker-compose.yaml` 
+to have a be something like:
+ ```yml
+  devices:
+      - /dev/serial/by-id/<left-side-of-output>:/dev/<the identified port, mine is on ttyUSB0>
+ ```
+
+
+
 ### 4. COnfigure Zigbee
 Ngl i was too lazy to clean up my configuration file
 
@@ -78,16 +92,6 @@ frontend:
 ```
 
 
-This will output something like: 
-```bash
- usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0 ⇒ ../../ttyUSB0
- ```
-
- Update the devices section to have a be something like:
- ```yml
-  devices:
-      - /dev/serial/by-id/<left-side-of-output>:/dev/<the identified port, mine is on ttyUSB0>
- ```
 
  ### 5. Let it riiiiiiop
 run the following mf:
