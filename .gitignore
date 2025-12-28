@@ -4,7 +4,6 @@ infrastructure/mosquitto/data/*
 infrastructure/mosquitto/log/*
 
 build/
-.vscode/
 *.o
 *.out
 
@@ -13,7 +12,7 @@ build/
 # Editor Noise
 *.sw
 *~
-.vscode/
+
 
 # Ignore backups
 *.backup

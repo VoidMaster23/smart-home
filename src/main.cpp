@@ -1,14 +1,22 @@
 #include <iostream>
+#include <cstdlib>
+#include <string>
 
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <mqtt/async_client.h>
 
-int main(int argc, char *argv[]) {
-    try {
-        mqtt::async_client client("tcp://localhost:1883", "test_client");
+int main(int argc, char *argv[])
+{
+    const std::string mqtt_address = std::string(std::getenv("MQTT_ADDRESS"));
+
+    try
+    {
+        mqtt::async_client client(mqtt_address, "test_client");
         std::cout << "WOO PAHO DOING DA TINGS" << std::endl;
-    } catch (...) {
+    }
+    catch (...)
+    {
         std::cout << "FUUUUUCK NO PAHO" << std::endl;
     }
 
@@ -17,10 +25,9 @@ int main(int argc, char *argv[]) {
 
     const QUrl url(u"qrc:/SmartHome/Main.qml"_qs);
 
-    QObject::connect(&engine, &QQmlApplicationEngine::objectCreationFailed,
-        &app, []() { QCoreApplication::exit(-1); },
-        Qt::QueuedConnection);
-        
+    QObject::connect(&engine, &QQmlApplicationEngine::objectCreationFailed, &app, []()
+                     { QCoreApplication::exit(-1); }, Qt::QueuedConnection);
+
     engine.load(url);
 
     std::cout << "[SUCCESS] Qt App Initialized. Check your screen!" << std::endl;
