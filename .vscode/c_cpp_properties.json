@@ -8,12 +8,11 @@
                 "/usr/local/include",
 
                 
-                // QT 6 PATHS (The Critical Part)
                 "/usr/include/aarch64-linux-gnu/qt6",
                 "/usr/include/aarch64-linux-gnu/qt6/QtCore",
                 "/usr/include/aarch64-linux-gnu/qt6/QtGui",
                 "/usr/include/aarch64-linux-gnu/qt6/QtQuick",
-                "/usr/include/aarch64-linux-gnu/qt6/QtQml",
+                "/usr/include/aarch64-linux-gnu/qt6/QtQml"
             ],
             "defines": [
                 "QT_CORE_LIB",

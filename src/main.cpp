@@ -1,36 +1,34 @@
-#include <iostream>
 #include <cstdlib>
+#include <iostream>
 #include <string>
 
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <mqtt/async_client.h>
 
-int main(int argc, char *argv[])
-{
-    const std::string mqtt_address = std::string(std::getenv("MQTT_ADDRESS"));
+int main(int argc, char *argv[]) {
+  int *some_pointer = NULL;
+  const std::string mqtt_address = std::string(std::getenv("MQTT_ADDRESS"));
 
-    try
-    {
-        mqtt::async_client client(mqtt_address, "test_client");
-        std::cout << "WOO PAHO DOING DA TINGS" << std::endl;
-    }
-    catch (...)
-    {
-        std::cout << "FUUUUUCK NO PAHO" << std::endl;
-    }
+  try {
+    mqtt::async_client client(mqtt_address, "test_client");
+    std::cout << "WOO PAHO DOING DA TINGS" << std::endl;
+  } catch (...) {
+    std::cout << "FUUUUUCK NO PAHO" << std::endl;
+  }
 
-    QGuiApplication app(argc, argv);
-    QQmlApplicationEngine engine;
+  QGuiApplication app(argc, argv);
+  QQmlApplicationEngine engine;
 
-    const QUrl url(u"qrc:/SmartHome/Main.qml"_qs);
+  const QUrl url(u"qrc:/SmartHome/Main.qml"_qs);
 
-    QObject::connect(&engine, &QQmlApplicationEngine::objectCreationFailed, &app, []()
-                     { QCoreApplication::exit(-1); }, Qt::QueuedConnection);
+  QObject::connect(
+      &engine, &QQmlApplicationEngine::objectCreationFailed, &app,
+      []() { QCoreApplication::exit(-1); }, Qt::QueuedConnection);
 
-    engine.load(url);
+  engine.load(url);
 
-    std::cout << "[SUCCESS] Qt App Initialized. Check your screen!" << std::endl;
+  std::cout << "[SUCCESS] Qt App Initialized. Check your screen!" << std::endl;
 
-    return app.exec();
+  return app.exec();
 }
