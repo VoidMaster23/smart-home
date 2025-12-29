@@ -7,7 +7,8 @@
 #include <mqtt/async_client.h>
 
 int main(int argc, char *argv[]) {
-  int *some_pointer = NULL;
+  int* some_pointer = NULL;
+  (void)some_pointer;
   const std::string mqtt_address = std::string(std::getenv("MQTT_ADDRESS"));
 
   try {
@@ -20,7 +21,7 @@ int main(int argc, char *argv[]) {
   QGuiApplication app(argc, argv);
   QQmlApplicationEngine engine;
 
-  const QUrl url(u"qrc:/SmartHome/Main.qml"_qs);
+  const QUrl url(u"qrc:/SmartHome/src/Main.qml"_qs);
 
   QObject::connect(
       &engine, &QQmlApplicationEngine::objectCreationFailed, &app,

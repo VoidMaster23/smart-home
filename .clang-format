@@ -1,0 +1,10 @@
+---
+Language:        Cpp
+BasedOnStyle:    Qt
+Standard:        c++20
+IndentWidth:     4
+TabWidth:        4
+UseTab:          Never
+ColumnLimit:     100
+AccessModifierOffset: -4
+...

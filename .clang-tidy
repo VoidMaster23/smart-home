@@ -1,0 +1,31 @@
+
+# 1. Enable specific checks
+# - bugprone-*: Finds crashes before they happen
+# - modernize-*: Enforces C++11/14/17/20 features (e.g. override, auto, nullptr)
+# - performance-*: Flags unnecessary copies of strings/vectors
+# - cppcoreguidelines-*: The official best practices
+# - readability-*: Makes code easier to scan
+Checks: >
+  -*,
+  bugprone-*,
+  modernize-*,
+  performance-*,
+  cppcoreguidelines-*,
+  readability-*,
+  misc-const-correctness,
+  -modernize-use-trailing-return-type,
+  -readability-magic-numbers,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -readability-identifier-length
+
+# 2. Treat these severe warnings as errors (Stops the build)
+WarningsAsErrors: 'bugprone-*,cppcoreguidelines-owning-memory'
+
+# 3. Check configuration
+CheckOptions:
+  - key:             readability-identifier-naming.ClassCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.VariableCase
+    value:           lowerCamelCase
+  - key:             readability-identifier-naming.FunctionCase
+    value:           lowerCamelCase

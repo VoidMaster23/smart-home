@@ -37,6 +37,7 @@ RUN git clone https://github.com/eclipse/paho.mqtt.cpp.git \
 
 WORKDIR /app
 
+COPY CMakeLists.txt .
 COPY generate_sources.py .
 COPY src/ src/
 
@@ -45,7 +46,7 @@ RUN python3 generate_sources.py
 
 # 4. Build with CMake
 RUN mkdir build && cd build \
-    && cmake ../src \
+    && cmake .. \
     && make -j$(nproc)
 
 

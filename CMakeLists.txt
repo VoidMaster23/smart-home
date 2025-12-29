@@ -10,7 +10,11 @@ find_package(Qt6 REQUIRED COMPONENTS Core Gui Quick)
 qt_standard_project_setup()
 
 # --- 2. Load Generated Sources ---
-include(sources.cmake)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/sources.cmake")
+    include(sources.cmake)
+else()
+    message(FATAL_ERROR "sources.cmake not found! Run generate_sources.py first.")
+endif()
 
 # --- 3. Find Backend Dependencies ---
 find_package(nlohmann_json 3.2.0 REQUIRED)
@@ -27,11 +31,11 @@ qt_add_qml_module(controller
     URI "SmartHome"
     VERSION 1.0
     QML_FILES
-        Main.qml 
+        src/Main.qml 
 )
 
 # --- 6. Include Directories ---
-target_include_directories(controller PRIVATE include ${PAHO_MQTT_C_INCLUDE_DIR})
+target_include_directories(controller PRIVATE src src/include ${PAHO_MQTT_C_INCLUDE_DIR})
 
 # --- 7. Link Libraries ---
 target_link_libraries(controller PRIVATE

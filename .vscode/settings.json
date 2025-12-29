@@ -5,7 +5,9 @@
         "--background-index",
         "--clang-tidy",
         "--completion-style=detailed",
-        "--header-insertion=never"
+        "--header-insertion=never",
+        "--fallback-style=Qt",
+        "-j=4"
     ],
     "C_Cpp.intelliSenseEngine": "Disabled",
     "C_Cpp.errorSquiggles": "Disabled"
