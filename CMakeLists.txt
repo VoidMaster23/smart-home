@@ -16,6 +16,12 @@ else()
     message(FATAL_ERROR "sources.cmake not found! Run generate_sources.py first.")
 endif()
 
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/headers.cmake")
+    include(headers.cmake)
+else()
+    message(FATAL_ERROR "headers.cmake not found! Run generate_sources.py first.")
+endif()
+
 # --- 3. Find Backend Dependencies ---
 find_package(nlohmann_json 3.2.0 REQUIRED)
 find_package(PahoMqttCpp REQUIRED)
@@ -24,7 +30,7 @@ find_library(PAHO_MQTT_LIB paho-mqtt3a REQUIRED)
 find_path(PAHO_MQTT_C_INCLUDE_DIR MQTTAsync.h REQUIRED)
 
 # --- 4. Create Executable (Qt Style) ---
-qt_add_executable(controller MANUAL_FINALIZATION ${SOURCES})
+qt_add_executable(controller MANUAL_FINALIZATION ${SOURCES} ${HEADERS})
 
 # --- 5. Define QML Module ---
 qt_add_qml_module(controller

@@ -1,35 +1,29 @@
-#include <cstdlib>
+#include "device_manager.h"
+
 #include <iostream>
-#include <string>
 
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
-#include <mqtt/async_client.h>
+#include <qqmlcontext.h>
 
 int main(int argc, char *argv[]) {
-  int* some_pointer = NULL;
-  (void)some_pointer;
-  const std::string mqtt_address = std::string(std::getenv("MQTT_ADDRESS"));
-
-  try {
-    mqtt::async_client client(mqtt_address, "test_client");
-    std::cout << "WOO PAHO DOING DA TINGS" << std::endl;
-  } catch (...) {
-    std::cout << "FUUUUUCK NO PAHO" << std::endl;
-  }
-
+  DeviceManager manager;
   QGuiApplication app(argc, argv);
   QQmlApplicationEngine engine;
 
-  const QUrl url(u"qrc:/SmartHome/src/Main.qml"_qs);
+  using namespace Qt::Literals::StringLiterals;
+  const QUrl url(u"qrc:/SmartHome/src/Main.qml"_s);
 
   QObject::connect(
       &engine, &QQmlApplicationEngine::objectCreationFailed, &app,
       []() { QCoreApplication::exit(-1); }, Qt::QueuedConnection);
 
+  engine.rootContext()->setContextProperty("backend", &manager);
+  manager.connect_to_broker();
+
   engine.load(url);
 
-  std::cout << "[SUCCESS] Qt App Initialized. Check your screen!" << std::endl;
+  std::cout << "[SUCCESS] Qt App Initialized. Check your screen!" << '\n';
 
-  return app.exec();
+  return QGuiApplication::exec();
 }
