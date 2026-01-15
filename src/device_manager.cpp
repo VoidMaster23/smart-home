@@ -36,7 +36,7 @@ QList<QObject *> DeviceManager::devices() const {
 SmartDevice *DeviceManager::get_device(QString &id) const {
   for (auto *m_device : m_devices) {
     auto *device{m_device};
-    if (device->device_id().compare(id, Qt::CaseInsensitive) == 0) {
+    if (device->ieee_address().compare(id, Qt::CaseInsensitive) == 0) {
       return device;
     }
   }
