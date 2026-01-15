@@ -1,4 +1,5 @@
 #include "device_manager.h"
+#include "device_factory.h"
 #include "smart_device.h"
 
 #include <QJsonArray>
@@ -23,24 +24,12 @@ DeviceManager::DeviceManager(QObject *parent)
   }
 }
 
-QList<QObject *> DeviceManager::devices() const {
-  QList<QObject *> devices;
-
-  for (qsizetype i = 0; i < this->m_devices.size(); ++i) {
-    devices.push_back(m_devices.at(i));
-  }
-
-  return devices;
+QList<SmartDevice *> DeviceManager::devices() const {
+  return m_devices.values();
 }
 
 SmartDevice *DeviceManager::get_device(QString &id) const {
-  for (auto *m_device : m_devices) {
-    auto *device{m_device};
-    if (device->ieee_address().compare(id, Qt::CaseInsensitive) == 0) {
-      return device;
-    }
-  }
-  return nullptr;
+  return m_devices.value(id, nullptr);
 }
 
 void DeviceManager::handle_message(QString &topic, QJsonObject &payload) {
@@ -52,28 +41,46 @@ void DeviceManager::handle_message(QString &topic, QJsonObject &payload) {
             << '\n';
 }
 
+void DeviceManager::add_new_device(QJsonArray const &payload) {
+  for (const auto data : payload) {
+    auto load = data.toObject();
+    if (load["type"] == "Coordinator") {
+      continue;
+    }
+
+    auto ieee_address = load["ieee_address"].toString();
+
+    if (ieee_address.isEmpty() || this->m_devices.contains(ieee_address)) {
+      continue;
+    }
+
+    auto *device = DeviceFactory::create_device(load);
+    // it is  a device we support
+    if (device != nullptr) {
+      device->setParent(this);
+      this->m_devices[ieee_address] = device;
+      
+      emit devices_changed();
+      std::cout << "Device " << device->friendly_name().toStdString() << " successfuully added" << "\n";
+    }
+  }
+}
+
 void DeviceManager::message_arrived(mqtt::const_message_ptr msg) {
   QString topic{QString::fromStdString(msg->get_topic())};
   QByteArray payload{QByteArray::fromStdString(msg->get_payload_str())};
 
-  // for the most part I expect that everything will be primarily single JSON objects
-  // for now this is crude but it works
-  // TODO: improve this by making it so that we have a nice little detector for array vs json values. 
-  
+  // for the most part I expect that everything will be primarily single JSON
+  // objects for now this is crude but it works
+  // TODO: improve this by making it so that we have a nice little detector for
+  // array vs json values.
   if (topic.contains("zigbee2mqtt/bridge") && !topic.contains("devices")) {
     return;
   }
 
   if (topic.contains("bridge/devices")) {
-    std::cout << payload.toStdString() << "\n";
     QJsonArray payload_json_arr = QJsonDocument::fromJson(payload).array();
-    std::cout << payload_json_arr.size();
-    for (auto data : payload_json_arr) {
-      auto load = data.toObject();
-      if (load["friendly_name"] != "Coordinator") {
-        DeviceManager::handle_message(topic, load);
-      }
-    }
+    add_new_device(payload_json_arr);
     return;
   }
 
