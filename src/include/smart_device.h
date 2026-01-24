@@ -5,6 +5,10 @@
 #include <QJsonObject>
 
 
+enum class DeviceType {
+  SmartLight
+};
+
 class SmartDevice : public QObject {
   Q_OBJECT
   Q_PROPERTY(
@@ -14,12 +18,13 @@ class SmartDevice : public QObject {
   Q_PROPERTY(bool state READ state WRITE set_state NOTIFY state_changed)
 
 public:
-  SmartDevice( QString id,  QString name, QString model, QObject *parent = nullptr);
+  SmartDevice( QString id,  QString name, QString model, DeviceType type, QObject *parent = nullptr);
 
   [[nodiscard]] QString friendly_name() const;
   [[nodiscard]] QString model_id() const;
   [[nodiscard]] QString ieee_address() const;
   [[nodiscard]] bool state() const;
+  [[nodiscard]] DeviceType device_type() const;
 
   void set_state(bool state);
 
@@ -27,12 +32,14 @@ public:
 
 signals:
 
-  void state_changed();
+  void state_changed(bool state);
   void friendly_name_changed();
+  void send_command(QString topic, QString payload);
 
 private:
   QString m_friendly_name;
   QString m_model_id;
   QString m_ieee_address;
+  DeviceType type;
   bool m_state;
 };

@@ -59,9 +59,17 @@ void DeviceManager::add_new_device(QJsonArray const &payload) {
     if (device != nullptr) {
       device->setParent(this);
       this->m_devices[ieee_address] = device;
-      
+
       emit devices_changed();
-      std::cout << "Device " << device->friendly_name().toStdString() << " successfuully added" << "\n";
+      emit device_discovered(device);
+      std::cout << "Device " << device->friendly_name().toStdString()
+                << " successfuully added" << "\n";
+      connect(device, &SmartDevice::send_command, this,
+              [this](const QString& topic, const QString& payload) {
+                mqtt::message_ptr pubmsg = mqtt::make_message(
+                    topic.toStdString(), payload.toStdString());
+                m_client.publish(pubmsg);
+              });
     }
   }
 }
@@ -107,5 +115,5 @@ void DeviceManager::connect_to_broker() {
   }
 }
 
-void DeviceManager::connection_lost(const std::string &cause) {};
-void DeviceManager::delivery_complete(mqtt::delivery_token_ptr token) {};
+void DeviceManager::connection_lost(const std::string & /*cause*/) {};
+void DeviceManager::delivery_complete(mqtt::delivery_token_ptr /*token*/){};

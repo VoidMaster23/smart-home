@@ -22,8 +22,8 @@ class SmartLight : public SmartDevice {
     void handle_update(QJsonObject const &payload) override;
 
     signals:
-        void brightness_changed();
-        void color_temp_changed();
+        void brightness_changed(int brightness);
+        void color_temp_changed(int color_temp);
 
     private:
         int m_brightness;

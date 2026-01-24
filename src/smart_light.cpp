@@ -6,7 +6,7 @@
 #include <utility>
 
 SmartLight::SmartLight(QString id, QString name, QString model, QObject *parent)
-    : SmartDevice(std::move(id), std::move(name), std::move(model), parent),
+    : SmartDevice(std::move(id), std::move(name), std::move(model), DeviceType::SmartLight, parent),
       m_brightness(0), m_color_temp(454) {}
 
 int SmartLight::brightness() const { return this->m_brightness; }
@@ -18,7 +18,12 @@ void SmartLight::set_brightness(const int brightness) {
   }
 
   this->m_brightness = brightness;
-  emit this->brightness_changed();
+  emit this->brightness_changed(m_brightness);
+
+  QString topic = "zigbee2mqtt/" + friendly_name() + "/set";
+  QString payload = QString("{\"brightness\": %1}").arg(m_brightness);
+
+  emit send_command(topic, payload);
 }
 
 void SmartLight::set_color_temp(const int color_temp) {
@@ -27,7 +32,7 @@ void SmartLight::set_color_temp(const int color_temp) {
   }
 
   this->m_color_temp = color_temp;
-  emit this->color_temp_changed();
+  emit this->color_temp_changed(m_color_temp);
 }
 
 void SmartLight::handle_update(QJsonObject const &payload) {

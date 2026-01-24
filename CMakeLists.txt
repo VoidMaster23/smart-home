@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # --- 1. Find Qt Dependencies (CRITICAL STEP) ---
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Quick)
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets Quick)
 qt_standard_project_setup()
 
 # --- 2. Load Generated Sources ---
@@ -47,7 +47,7 @@ target_include_directories(controller PRIVATE src src/include ${PAHO_MQTT_C_INCL
 target_link_libraries(controller PRIVATE
     # Qt Libs
     Qt6::Core
-    Qt6::Gui
+    Qt6::Widgets
     Qt6::Quick
     
     # Your Backend Libs

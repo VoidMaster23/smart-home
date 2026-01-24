@@ -10,7 +10,7 @@
 
 class DeviceManager : public QObject, public virtual mqtt::callback {
     Q_OBJECT
-    Q_PROPERTY(QList<QObject*> devices READ devices NOTIFY devices_changed)
+    Q_PROPERTY(QList<SmartDevice*> devices READ devices NOTIFY devices_changed)
 
     public:
         explicit DeviceManager(QObject *parent = nullptr);
@@ -31,6 +31,7 @@ class DeviceManager : public QObject, public virtual mqtt::callback {
     signals:
     
      void devices_changed();
+     void device_discovered(SmartDevice *device);
     private:
         QHash<QString, SmartDevice*> m_devices;
         mqtt::async_client m_client;   
