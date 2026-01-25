@@ -35,6 +35,19 @@ SmartDevice *DeviceManager::get_device(QString &id) const {
 void DeviceManager::handle_message(QString &topic, QJsonObject &payload) {
   std::cout << "Topic: " << topic.toStdString() << '\n';
 
+  if (topic.endsWith("/set")) {
+    return;
+  }
+
+  for (auto *device : m_devices) {
+    QString device_topic = "zigbee2mqtt/" + device->friendly_name();
+
+    if (topic == device_topic) {
+      device->handle_update(payload);
+      return;
+    }
+  }
+
   QJsonDocument data{payload};
 
   std::cout << "Payload: " << data.toJson(QJsonDocument::Indented).toStdString()
@@ -71,6 +84,15 @@ void DeviceManager::add_new_device(QJsonArray const &payload) {
                 m_client.publish(pubmsg);
               });
     }
+  }
+
+  for (auto *device : m_devices) {
+    QString topic = "zigbee2mqtt/" + device->friendly_name() + "/get";
+    QString payload = R"({"state": ""})";
+    mqtt::message_ptr pubmsg =
+        mqtt::make_message(topic.toStdString(), payload.toStdString());
+
+    m_client.publish(pubmsg);
   }
 }
 

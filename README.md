@@ -109,3 +109,34 @@ make build # this handles compilation and starts the containers
  2. put your zigbee devices in pairing mode (to be fair, I only tested this on lights but i mean surely this should work for other stuff)
  3. code to your hearts content. Now tyou can just run a `docker compose up -d --build` to make sure everything is setup correctly
  **Note**:  Edit files in src/. The CMake system automatically finds new .cpp files, so just create them and run docker compose up -d --build to recompile.
+
+
+
+## 🛠 Technical Debt & Future Refactors
+This project is currently in the prototype phase. The following items are identified for future architectural hardening and modernization to align with C++20 and professional Qt standards:
+
+1. Memory & Ownership
+ - [ ] Transition to Stack Allocation: Replace heap-allocated UI components (new QLabel) with member variables to satisfy clang-tidy (gsl::owner) and improve cache locality.
+
+- [ ] Smart Pointer Migration: Replace remaining raw pointers for non-Qt objects with `std::unique_ptr` or `std::shared_ptr`.
+
+- [ ] Virtual Destructors: Audit base classes (e.g., Device, Sensor) to ensure destructors are virtual, preventing partial destruction during polymorphic deletes.
+
+2. Type Safety & Performance
+- [ ] Const Correctness: Audit all "getters" and observer methods to mark them as const and [[nodiscard]].
+
+- [ ] String Optimization: Replace `std::string` or QString pass-by-value with `std::string_view` (C++17/20) for read-only device names and identifiers.
+
+- [ ] Explicit Casting: Replace `dynamic_cast` with `qobject_cast` for QObject-derived types to bypass RTTI overhead and improve safety across library boundaries.
+
+3. Modern C++20 Patterns
+- [ ] Concepts & Constraints: Implement C++20 Concepts for template-based device managers to provide better compile-time errors.
+
+- [ ] Designated Initializers: Refactor device configuration structs to use C++20 designated initialization (.name = "Kitchen") for better readability.
+
+- [ ] Signal/Slot Modernization: Ensure all connect() calls use the pointer-to-member-function syntax for compile-time signature verification.
+
+4. UI/UX Refinements
+- [ ] Text Elision: Implement a custom ElidedLabel using `QFontMetrics::elidedText` to handle long device names gracefully in constrained layouts.
+
+- [ ] High-DPI Scaling: Audit layouts to ensure they utilize QLayout scaling rather than fixed pixel dimensions.
