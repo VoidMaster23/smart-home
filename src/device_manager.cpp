@@ -65,7 +65,7 @@ void DeviceManager::add_new_device(QJsonArray const &payload) {
       std::cout << "Device " << device->friendly_name().toStdString()
                 << " successfuully added" << "\n";
       connect(device, &SmartDevice::send_command, this,
-              [this](const QString& topic, const QString& payload) {
+              [this](const QString &topic, const QString &payload) {
                 mqtt::message_ptr pubmsg = mqtt::make_message(
                     topic.toStdString(), payload.toStdString());
                 m_client.publish(pubmsg);
@@ -88,7 +88,8 @@ void DeviceManager::message_arrived(mqtt::const_message_ptr msg) {
 
   if (topic.contains("bridge/devices")) {
     QJsonArray payload_json_arr = QJsonDocument::fromJson(payload).array();
-    add_new_device(payload_json_arr);
+    QMetaObject::invokeMethod(
+        this, [this, payload_json_arr]() { add_new_device(payload_json_arr); });
     return;
   }
 
