@@ -33,6 +33,8 @@ SmartLightWidget::SmartLightWidget(SmartLight *device, QWidget *parent)
   layout->addWidget(m_name_label);
   layout->addWidget(m_brightness_slider, 1);
   layout->addWidget(m_toggle_button);
+
+  setup_connections();
 }
 
 void SmartLightWidget::setup_connections() {

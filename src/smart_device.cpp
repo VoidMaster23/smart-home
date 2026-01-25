@@ -29,6 +29,6 @@ void SmartDevice::set_state(bool state) {
   QString topic = "zigbee2mqtt/" + friendly_name() + "/set";
 
   QString state_str = state ? "ON" : "OFF";
-  QString payload = QString("{\"state\": %1}").arg(state_str);
+  QString payload = QString(R"({"state": "%1"})").arg(state_str);
   emit send_command(topic, payload);
 }
