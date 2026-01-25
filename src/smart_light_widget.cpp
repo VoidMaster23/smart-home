@@ -28,7 +28,9 @@ SmartLightWidget::SmartLightWidget(SmartLight *device, QWidget *parent)
   m_toggle_button = new QPushButton(); // NOLINT
   m_toggle_button->setCheckable(true);
   m_toggle_button->setFixedSize(50, 50);
-  m_toggle_button->setChecked(device->state());
+  auto device_state = device->state();
+  m_toggle_button->setChecked(device_state);
+  m_toggle_button->setText(device_state ? "ON" : "OFF");
 
   layout->addWidget(m_name_label);
   layout->addWidget(m_brightness_slider, 1);
@@ -38,19 +40,18 @@ SmartLightWidget::SmartLightWidget(SmartLight *device, QWidget *parent)
 }
 
 void SmartLightWidget::setup_connections() {
-  connect(m_brightness_slider, &QSlider::valueChanged, this, [this](int value) {
-    m_light_device->set_brightness(value);
-  });
+  connect(m_brightness_slider, &QSlider::valueChanged, this,
+          [this](int value) { m_light_device->set_brightness(value); });
 
-  connect(m_toggle_button, &QPushButton::toggled, this, [this](bool is_checked) {
-    m_light_device->set_state(is_checked);
-  });
+  connect(m_toggle_button, &QPushButton::toggled, this,
+          [this](bool is_checked) { m_light_device->set_state(is_checked); });
 
-  connect(m_light_device, &SmartLight::brightness_changed, this, [this](int value){
-    m_brightness_slider->setValue(value);
-  });
+  connect(m_light_device, &SmartLight::brightness_changed, this,
+          [this](int value) { m_brightness_slider->setValue(value); });
 
-  connect(m_light_device, &SmartLight::state_changed, this, [this](bool is_checked){
-    m_toggle_button->setChecked(is_checked);
-  });
+  connect(m_light_device, &SmartLight::state_changed, this,
+          [this](bool is_checked) {
+            m_toggle_button->setChecked(is_checked);
+            m_toggle_button->setText(is_checked ? "ON" : "OFF");
+          });
 }
