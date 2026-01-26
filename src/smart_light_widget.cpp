@@ -9,6 +9,7 @@
 #include <QtWidgets/QSizePolicy>
 #include <QtWidgets/QSlider>
 #include <QtWidgets/QWidget>
+#include <QSignalBlocker>
 
 SmartLightWidget::SmartLightWidget(SmartLight *device, QWidget *parent)
     : QWidget(parent), m_light_device(device), m_brightness_slider() {
@@ -47,10 +48,13 @@ void SmartLightWidget::setup_connections() {
           [this](bool is_checked) { m_light_device->set_state(is_checked); });
 
   connect(m_light_device, &SmartLight::brightness_changed, this,
-          [this](int value) { m_brightness_slider->setValue(value); });
+          [this](int value) { 
+                const QSignalBlocker blocker(m_brightness_slider);
+                m_brightness_slider->setValue(value); });
 
   connect(m_light_device, &SmartLight::state_changed, this,
           [this](bool is_checked) {
+            const QSignalBlocker blocker(m_toggle_button);
             m_toggle_button->setChecked(is_checked);
             m_toggle_button->setText(is_checked ? "ON" : "OFF");
           });
