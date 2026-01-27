@@ -3,13 +3,13 @@
 #include <QJsonObject>
 #include <QList>
 #include <QObject>
+#include <QSignalBlocker>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QSizePolicy>
 #include <QtWidgets/QSlider>
 #include <QtWidgets/QWidget>
-#include <QSignalBlocker>
 
 SmartLightWidget::SmartLightWidget(SmartLight *device, QWidget *parent)
     : QWidget(parent), m_light_device(device), m_brightness_slider() {
@@ -17,8 +17,11 @@ SmartLightWidget::SmartLightWidget(SmartLight *device, QWidget *parent)
   auto *layout = new QHBoxLayout(this); // NOLINT
 
   m_name_label = new QLabel(); // NOLINT
-  m_name_label->setText(device->friendly_name());
+  m_name_label->setText(device->friendly_name().replace('_', ' '));
   m_name_label->setAlignment(Qt::AlignVCenter);
+  QFont font = m_name_label->font();
+  font.setCapitalization(QFont::Capitalize);
+  m_name_label->setFont(font);
 
   m_brightness_slider = new QSlider(); // NOLINT
   m_brightness_slider->setOrientation(Qt::Orientation::Horizontal);
@@ -38,6 +41,8 @@ SmartLightWidget::SmartLightWidget(SmartLight *device, QWidget *parent)
   layout->addWidget(m_toggle_button);
 
   setup_connections();
+
+  this->setAttribute(Qt::WA_StyledBackground, true);
 }
 
 void SmartLightWidget::setup_connections() {
@@ -48,9 +53,10 @@ void SmartLightWidget::setup_connections() {
           [this](bool is_checked) { m_light_device->set_state(is_checked); });
 
   connect(m_light_device, &SmartLight::brightness_changed, this,
-          [this](int value) { 
-                const QSignalBlocker blocker(m_brightness_slider);
-                m_brightness_slider->setValue(value); });
+          [this](int value) {
+            const QSignalBlocker blocker(m_brightness_slider);
+            m_brightness_slider->setValue(value);
+          });
 
   connect(m_light_device, &SmartLight::state_changed, this,
           [this](bool is_checked) {

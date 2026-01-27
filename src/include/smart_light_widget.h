@@ -10,7 +10,7 @@
 #include <QtWidgets/QPushButton>
 
 class SmartLightWidget : public QWidget {
-
+    Q_OBJECT
     public:
         SmartLightWidget(SmartLight *device, QWidget *parent);
 

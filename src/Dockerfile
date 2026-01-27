@@ -84,4 +84,7 @@ RUN ln -s /usr/lib/libpaho-mqttpp3.so.1 /usr/lib/libpaho-mqttpp3.so && ldconfig
 WORKDIR /app
 COPY --from=builder /app/build/controller .
 
+RUN mkdir src
+COPY --from=builder /app/src ./src
+
 CMD [ "./controller" ]

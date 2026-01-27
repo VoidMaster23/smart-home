@@ -57,6 +57,8 @@ services:
         - /tmp/.X11-unix:/tmp/.X11-unix
         # Map input devices (so your touchscreen works)
         - /dev/input:/dev/input
+        # Map src to my local src
+        - ./src:/app/src
       devices:
         # Pass the GPU through for smooth QML animations
         - /dev/dri:/dev/dri

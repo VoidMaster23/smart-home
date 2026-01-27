@@ -140,3 +140,5 @@ This project is currently in the prototype phase. The following items are identi
 - [ ] Text Elision: Implement a custom ElidedLabel using `QFontMetrics::elidedText` to handle long device names gracefully in constrained layouts.
 
 - [ ] High-DPI Scaling: Audit layouts to ensure they utilize QLayout scaling rather than fixed pixel dimensions.
+
+- [ ] stop copying the entire src folder to the runner app 
