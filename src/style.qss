@@ -3,9 +3,9 @@ QMainWindow, QScrollArea {
     background: black;
 }
 
-/* QScrollArea QWidget{
+QScrollArea #root {
     background-color: transparent;
-} */
+}
 
 SmartLightWidget {
     background: #2b2b2b;
@@ -16,9 +16,23 @@ SmartLightWidget {
 SmartLightWidget QPushButton {
     color: white;
     background-color: #d32f2f; 
-    border-radius: 15px;     
+    border-radius: 8px;     
     border: none;             
-    padding: 10px;             
+    padding: 10px;     
+    font-family: "Monospace";        
+}
+
+SmartLightWidget QPushButton[type="slider_control"] {
+    font-size: 9pt;
+    width: 10px;
+    height: 10px;
+    background: black;
+    border: none;
+}
+
+SmartLightWidget QPushButton[type="slider_control"]:pressed {
+    background: red;
+    border: 1px solid red;
 }
 
 SmartLightWidget QPushButton:checked {
@@ -27,6 +41,8 @@ SmartLightWidget QPushButton:checked {
 
 SmartLightWidget QLabel {
     color: white;
+    font-family: "Monospace";
+    font-size: 8.5pt;
 }
 
 

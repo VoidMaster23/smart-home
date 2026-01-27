@@ -141,4 +141,6 @@ This project is currently in the prototype phase. The following items are identi
 
 - [ ] High-DPI Scaling: Audit layouts to ensure they utilize QLayout scaling rather than fixed pixel dimensions.
 
-- [ ] stop copying the entire src folder to the runner app 
+- [ ] stop copying the entire src folder to the runner app
+- [ ] fix weird behavior where on startup the we set max brightness and lights on instead of getting that from state 
+- [ ] fuck ass infinite update loop lol but its less often

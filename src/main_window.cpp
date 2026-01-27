@@ -17,6 +17,7 @@ MainWindow::MainWindow(DeviceManager *manager, QWidget *parent)
   scroll_area->setWidgetResizable(true);
 
   scroll_content = new QWidget();                // NOLINT
+  scroll_content->setObjectName("root");
   main_layout = new QVBoxLayout(scroll_content); // NOLINT
 
   main_layout->addStretch();
