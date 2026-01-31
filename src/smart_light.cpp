@@ -5,9 +5,11 @@
 #include <QString>
 #include <utility>
 
-SmartLight::SmartLight(QString id, QString name, QString model, QObject *parent)
-    : SmartDevice(std::move(id), std::move(name), std::move(model), DeviceType::SmartLight, parent),
-      m_brightness(0), m_color_temp(454) {}
+SmartLight::SmartLight(SmartLightParams params)
+    : SmartDevice(std::move(params.id), std::move(params.name),
+                  std::move(params.model), DeviceType::SmartLight,
+                  params.parent),
+      m_brightness(params.brightness), m_color_temp(params.color_temp) {}
 
 int SmartLight::brightness() const { return this->m_brightness; }
 int SmartLight::color_temp() const { return this->m_color_temp; }

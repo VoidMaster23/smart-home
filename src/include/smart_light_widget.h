@@ -14,6 +14,9 @@ class SmartLightWidget : public QWidget {
     public:
         SmartLightWidget(SmartLight *device, QWidget *parent);
 
+    protected:
+        void resizeEvent(QResizeEvent *event) override;
+
     private:
         SmartLight * m_light_device;
         QLabel* m_name_label;
@@ -23,6 +26,7 @@ class SmartLightWidget : public QWidget {
         QPushButton *btn_increase_brightness;
 
         void setup_connections();
+        void update_slider_label_pos();
 
 
 

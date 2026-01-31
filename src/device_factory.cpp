@@ -15,13 +15,14 @@ bool is_light(QJsonObject const &device) {
   }
 
   const QJsonArray exposes_arr = exposes.toArray();
-  return std::ranges::any_of(exposes_arr.cbegin(), exposes_arr.cend(), [](const QJsonValue& entry){
-    if (!entry.isObject()) {
-        return false;
-    }
+  return std::ranges::any_of(exposes_arr.cbegin(), exposes_arr.cend(),
+                             [](const QJsonValue &entry) {
+                               if (!entry.isObject()) {
+                                 return false;
+                               }
 
-    return entry["type"] == "light";
-  });
+                               return entry["type"] == "light";
+                             });
 }
 
 // TODO: this will not work for devices I connect via MQTT exclusively, but I
@@ -33,7 +34,12 @@ SmartDevice *create_device(QJsonObject const &data) {
   auto model_id = data["model_id"].toString();
 
   if (is_light(data)) {
-    auto *light = new SmartLight(ieee_address, friendly_name, model_id);
+    SmartLightParams params {
+      .id = ieee_address,
+      .name = friendly_name,
+      .model = model_id,
+    };
+    auto *light = new SmartLight(params);
     return light;
   }
 
