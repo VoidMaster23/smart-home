@@ -75,6 +75,10 @@ RUN apt-get update && apt-get install -y \
     # 4. Graphics Drivers
     libgl1 \
     libfontconfig1 \
+    # 5. icons
+    adwaita-icon-theme \
+    libqt6svg6 \ 
+    librsvg2-common \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy the Paho C++ Lib we built manually in Stage 1

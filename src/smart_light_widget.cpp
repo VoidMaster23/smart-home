@@ -1,10 +1,13 @@
 #include "smart_light_widget.h"
 #include "smart_light.h"
 #include <QDebug>
+#include <QIcon>
+#include <QImageReader>
 #include <QJsonObject>
 #include <QList>
 #include <QObject>
 #include <QSignalBlocker>
+#include <QStyle>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QPushButton>
@@ -36,9 +39,13 @@ void SmartLightWidget::update_slider_label_pos() {
 SmartLightWidget::SmartLightWidget(SmartLight *device, QWidget *parent)
     : QWidget(parent), m_light_device(device), m_brightness_slider() {
 
-  auto *layout = new QHBoxLayout(this);           // NOLINT
-  auto *slider_container = new QHBoxLayout(this); // NOLINT
-  auto *container = new QVBoxLayout(this);        // NOLINT
+  auto *layout = new QHBoxLayout(this);                       // NOLINT
+  auto *slider_container = new QHBoxLayout(this);             // NOLINT
+  auto *container = new QVBoxLayout(this);                    // NOLINT
+  auto *label_and_settings_container = new QHBoxLayout(this); // NOLINT
+
+  // label and settings container should be a flex layout
+  label_and_settings_container->setProperty("type", "flex");
 
   // button label
   m_name_label = new QLabel(); // NOLINT
@@ -48,6 +55,15 @@ SmartLightWidget::SmartLightWidget(SmartLight *device, QWidget *parent)
   QFont font = m_name_label->font();
   font.setCapitalization(QFont::Capitalize);
   m_name_label->setFont(font);
+
+  // settings button
+  btn_settings = new QPushButton(); // NOLINT
+  btn_settings->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+  QIcon::setThemeName("Adwaita");
+  QIcon icon = QIcon::fromTheme("preferences-system-symbolic");
+  
+  btn_settings->setIcon(icon);
+  btn_settings->setProperty("type", "settings_button");
 
   // slider control buttons
   btn_reduce_brightness = new QPushButton();   // NOLINT
@@ -88,7 +104,11 @@ SmartLightWidget::SmartLightWidget(SmartLight *device, QWidget *parent)
   slider_container->addWidget(btn_reduce_brightness);
   slider_container->addWidget(m_brightness_slider, 1);
   slider_container->addWidget(btn_increase_brightness);
-  container->addWidget(m_name_label);
+
+  label_and_settings_container->addWidget(m_name_label);
+  label_and_settings_container->addWidget(btn_settings);
+
+  container->addLayout(label_and_settings_container);
   container->addLayout(slider_container, 1);
   // set the gap between elements
   container->setSpacing(4);

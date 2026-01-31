@@ -24,6 +24,7 @@ class SmartLightWidget : public QWidget {
         QPushButton *m_toggle_button;
         QPushButton *btn_reduce_brightness;
         QPushButton *btn_increase_brightness;
+        QPushButton *btn_settings;
 
         void setup_connections();
         void update_slider_label_pos();

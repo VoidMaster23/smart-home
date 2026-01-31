@@ -22,6 +22,14 @@ SmartLightWidget QPushButton {
     font-family: "Monospace";        
 }
 
+SmartLightWidget QPushButton[type="settings_button"] {
+    width: 15pt;
+    height: 10pt;
+    background: black;
+    qproperty-iconSize: 15pt 15pt;
+}
+
+
 SmartLightWidget QPushButton[type="slider_control"] {
     font-size: 9pt;
     width: 10px;
