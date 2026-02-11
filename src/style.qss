@@ -53,4 +53,14 @@ SmartLightWidget QLabel {
     font-size: 8.5pt;
 }
 
+QDialog {
+    background-color: black;
+    border-radius: 8px;
+    border: 2px solid red;
+}
+
+QWidget#modalBackdrop {
+    background-color: rgba(0, 0, 0, 150); /* 150 is the 'dim' intensity (0-255) */
+}
+
 

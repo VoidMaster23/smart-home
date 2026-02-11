@@ -1,5 +1,6 @@
 #include "smart_light_widget.h"
 #include "smart_light.h"
+#include "smart_light_settings_dialog.hpp"
 #include <QDebug>
 #include <QIcon>
 #include <QImageReader>
@@ -61,7 +62,7 @@ SmartLightWidget::SmartLightWidget(SmartLight *device, QWidget *parent)
   btn_settings->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
   QIcon::setThemeName("Adwaita");
   QIcon icon = QIcon::fromTheme("preferences-system-symbolic");
-  
+
   btn_settings->setIcon(icon);
   btn_settings->setProperty("type", "settings_button");
 
@@ -161,4 +162,22 @@ void SmartLightWidget::setup_connections() {
             m_toggle_button->setChecked(is_checked);
             m_toggle_button->setText(is_checked ? "ON" : "OFF");
           });
+
+  connect(btn_settings, &QPushButton::clicked, this, [this]() {
+    auto *backdrop = new QWidget(this->window()); // NOLINT
+    backdrop->setObjectName("modalBackdrop");
+    backdrop->setGeometry(this->window()->rect());
+    backdrop->show();
+
+    auto *dialog = new SmartLightSettingsDialog(this); // NOLINT
+
+    connect(dialog, &QDialog::finished, this, [backdrop](int result) {
+      backdrop->deleteLater();
+      if (result == QDialog::Accepted) {
+        // Update logic goes here
+      }
+    });
+
+    dialog->open();
+  });
 }
