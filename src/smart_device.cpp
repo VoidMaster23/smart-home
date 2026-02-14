@@ -1,4 +1,5 @@
 #include "smart_device.h"
+#include "utils.h"
 
 #include <QJsonObject>
 #include <QObject>
@@ -9,13 +10,16 @@ SmartDevice::SmartDevice(QString id, QString name, QString model,
                          DeviceType type, QObject *parent)
     : QObject(parent), m_friendly_name(std::move(name)),
       m_model_id(std::move(model)), m_ieee_address(std::move(id)), type(type),
-      m_state(false) {}
+      m_state(false) {
+  m_display_name = StringUtils::format_for_display(m_friendly_name);
+}
 
 QString SmartDevice::friendly_name() const { return this->m_friendly_name; };
 
 QString SmartDevice::model_id() const { return this->m_model_id; }
 QString SmartDevice::ieee_address() const { return this->m_ieee_address; }
 DeviceType SmartDevice::device_type() const { return this->type; }
+QString SmartDevice::display_name() const { return this->m_display_name; }
 
 bool SmartDevice::state() const { return this->m_state; }
 

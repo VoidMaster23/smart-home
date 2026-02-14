@@ -25,6 +25,7 @@ public:
   [[nodiscard]] QString ieee_address() const;
   [[nodiscard]] bool state() const;
   [[nodiscard]] DeviceType device_type() const;
+  [[nodiscard]] QString display_name() const;
 
   void set_state(bool state);
 
@@ -40,6 +41,7 @@ private:
   QString m_friendly_name;
   QString m_model_id;
   QString m_ieee_address;
+  QString m_display_name;
   DeviceType type;
   bool m_state;
 };
