@@ -1,6 +1,6 @@
 #include "smart_light_widget.h"
 #include "smart_light.h"
-#include "smart_light_settings_dialog.hpp"
+#include "smart_light_settings_dialog.h"
 #include <QDebug>
 #include <QIcon>
 #include <QImageReader>
@@ -51,11 +51,8 @@ SmartLightWidget::SmartLightWidget(SmartLight *device, QWidget *parent)
   // button label
   m_name_label = new QLabel(); // NOLINT
   m_name_label->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-  m_name_label->setText(device->friendly_name().replace('_', ' '));
+  m_name_label->setText(device->display_name());
   m_name_label->setAlignment(Qt::AlignLeft);
-  QFont font = m_name_label->font();
-  font.setCapitalization(QFont::Capitalize);
-  m_name_label->setFont(font);
 
   // settings button
   btn_settings = new QPushButton(); // NOLINT
@@ -164,15 +161,9 @@ void SmartLightWidget::setup_connections() {
           });
 
   connect(btn_settings, &QPushButton::clicked, this, [this]() {
-    auto *backdrop = new QWidget(this->window()); // NOLINT
-    backdrop->setObjectName("modalBackdrop");
-    backdrop->setGeometry(this->window()->rect());
-    backdrop->show();
+    auto *dialog = new SmartLightSettingsDialog(m_light_device, this->window()); // NOLINT
 
-    auto *dialog = new SmartLightSettingsDialog(this); // NOLINT
-
-    connect(dialog, &QDialog::finished, this, [backdrop](int result) {
-      backdrop->deleteLater();
+    connect(dialog, &QDialog::finished, this, [this](int result) {
       if (result == QDialog::Accepted) {
         // Update logic goes here
       }
