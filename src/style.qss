@@ -13,7 +13,7 @@ SmartLightWidget {
 
 }
 
-SmartLightWidget QPushButton {
+QPushButton {
     color: white;
     background-color: #d32f2f; 
     border-radius: 8px;     
@@ -47,7 +47,7 @@ SmartLightWidget QPushButton:checked {
     background: #006400;
 }
 
-SmartLightWidget QLabel {
+ QLabel {
     color: white;
     font-family: "Monospace";
     font-size: 8.5pt;
