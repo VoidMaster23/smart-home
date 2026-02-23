@@ -48,8 +48,12 @@ std::optional<ColorTempRange> getColorTempRange(const QJsonObject &device) {
   }
 
   const auto features_object = features_iterator->toObject();
-  return ColorTempRange{.min = features_object["value_min"].toInt(),
-                        .max = features_object["value_max"].toInt()};
+  int min = features_object["value_min"].toInt();
+  int max = features_object["value_max"].toInt();
+  int neutral = min + ((max-min)/2);
+  return ColorTempRange{.min =min,
+                        .max = max,
+                      .neutral = neutral};
 }
 
 // TODO: this will not work for devices I connect via MQTT exclusively, but I

@@ -12,6 +12,7 @@ i am too lazy to handle kelvin lol so thats a future me problem
 struct ColorTempRange {
   int min{};
   int max{};
+  int neutral{};
 };
 
 struct SmartLightParams {

@@ -37,6 +37,11 @@ void SmartLight::set_color_temp(const int color_temp) {
 
   this->m_color_temp = color_temp;
   emit this->color_temp_changed(m_color_temp);
+
+  QString topic = "zigbee2mqtt/" + friendly_name() + "/set";
+  QString payload = QString("{\"color_temp\": %1}").arg(m_color_temp);
+
+  emit send_command(topic, payload);
 }
 
 void SmartLight::handle_update(QJsonObject const &payload) {

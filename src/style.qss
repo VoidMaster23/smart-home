@@ -63,4 +63,22 @@ QWidget#modalBackdrop {
     background-color: rgba(0, 0, 0, 150); /* 150 is the 'dim' intensity (0-255) */
 }
 
+QGroupBox::title {
+    color: white;
+    subcontrol-position: top center;
+
+}
+
+QGroupBox QPushButton {
+    background-color: black;
+    border: 1px dotted white;
+}
+
+QGroupBox QPushButton::checked {
+    background-color: white;
+    border: 1px dotted white;
+    color: black;
+}
+
+
 
