@@ -25,6 +25,33 @@ bool is_light(QJsonObject const &device) {
                              });
 }
 
+std::optional<ColorTempRange> getColorTempRange(const QJsonObject &device) {
+  const auto exposes = device["definition"].toObject()["exposes"].toArray();
+
+  auto it = std::ranges::find_if(exposes, [](const QJsonValue &val) {
+    return val.toObject()["type"].toString() == "light";
+  });
+
+  if (it == exposes.end()) {
+    return std::nullopt;
+  }
+
+  const auto features = it->toObject()["features"].toArray();
+
+  auto features_iterator =
+      std::ranges::find_if(features, [](const QJsonValue &val) {
+        return val.toObject()["name"].toString() == "color_temp";
+      });
+
+  if (features_iterator == features.end()) {
+    return std::nullopt;
+  }
+
+  const auto features_object = features_iterator->toObject();
+  return ColorTempRange{.min = features_object["value_min"].toInt(),
+                        .max = features_object["value_max"].toInt()};
+}
+
 // TODO: this will not work for devices I connect via MQTT exclusively, but I
 // can also just force those devices to use this format when they join the
 // network, maybe lol idk
@@ -32,12 +59,14 @@ SmartDevice *create_device(QJsonObject const &data) {
   auto friendly_name = data["friendly_name"].toString();
   auto ieee_address = data["ieee_address"].toString();
   auto model_id = data["model_id"].toString();
+  auto color_temp_range = getColorTempRange(data).value_or(ColorTempRange{});
 
   if (is_light(data)) {
-    SmartLightParams params {
-      .id = ieee_address,
-      .name = friendly_name,
-      .model = model_id,
+    SmartLightParams params{
+        .id = ieee_address,
+        .name = friendly_name,
+        .model = model_id,
+        .color_temp_range = color_temp_range,
     };
     auto *light = new SmartLight(params);
     return light;
