@@ -25,9 +25,10 @@ struct TempSetting {
 class SmartLightSettingsDialog : public BackdropDialog {
 public:
   explicit SmartLightSettingsDialog(const QPointer<SmartLight> &light,
-                                    QWidget *parent = nullptr)
+                                    QWidget *parent)
       : BackdropDialog(parent), light(light) {
-    if (light.isNull()) {
+    if (this->light.isNull()) {
+      QTimer::singleShot(0, this, &QDialog::reject);
       return;
     }
     setup_ui();
