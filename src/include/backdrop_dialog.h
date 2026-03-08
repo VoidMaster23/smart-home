@@ -3,6 +3,7 @@
 #include <QWidget>
 #include <QObject>
 #include <QEvent>
+#include <QPointer>
 
 
 class BackdropDialog : public QDialog {
@@ -27,10 +28,10 @@ class BackdropDialog : public QDialog {
 
         }
 
-        virtual ~BackdropDialog() {
+        ~BackdropDialog() override {
             if (backdrop != nullptr) {
-                delete backdrop;
-                backdrop = nullptr;
+                backdrop->hide();
+                backdrop->deleteLater();
             }
         }
 
@@ -38,7 +39,7 @@ class BackdropDialog : public QDialog {
         virtual void setup_ui() = 0;
     
     private: 
-        QWidget *backdrop;
+        QPointer<QWidget> backdrop;
         bool eventFilter(QObject *object, QEvent *event) override {
             if(object == backdrop && event->type() == QEvent::MouseButtonPress) {
                 this->reject();
