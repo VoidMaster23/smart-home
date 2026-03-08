@@ -28,7 +28,7 @@ QList<QPointer<SmartDevice>> DeviceManager::devices() const {
   return m_devices.values();
 }
 
-QPointer<SmartDevice> DeviceManager::get_device(QString &id) const {
+QPointer<SmartDevice> DeviceManager::get_device(const QString &id) const {
   return m_devices.value(id, nullptr);
 }
 
