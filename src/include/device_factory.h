@@ -8,8 +8,10 @@
 
 #include <optional>
 
+#include <QPointer>
+
 namespace DeviceFactory {
-    SmartDevice* create_device(QJsonObject const &data);
+    QPointer<SmartDevice> create_device(QJsonObject const &data);
 
     bool is_light(QJsonObject const &device);
     std::optional<ColorTempRange> getColorTempRange(const QJsonObject& device);

@@ -4,17 +4,18 @@
 #include <QJsonObject>
 #include <QString>
 #include <QtWidgets/QWidget>
+#include <QPointer>
 
 #include <algorithm>
 
 namespace WidgetFactory {
-QWidget *create_widget(SmartDevice *device, QWidget *parent) {
-  if (device == nullptr) {
+QPointer<QWidget> create_widget(const QPointer<SmartDevice>& device, const QPointer<QWidget>& parent) {
+  if (device.isNull()) {
     return nullptr;
   }
 
   if (device->device_type() == DeviceType::SmartLight) {
-    auto *light = dynamic_cast<SmartLight *>(device);
+    auto *light = qobject_cast<SmartLight *>(device.data());
     if(light != nullptr) {
         return new SmartLightWidget(light, parent); //NOLINT
     }

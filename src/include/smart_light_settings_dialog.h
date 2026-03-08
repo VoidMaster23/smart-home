@@ -24,14 +24,22 @@ struct TempSetting {
 
 class SmartLightSettingsDialog : public BackdropDialog {
 public:
-  explicit SmartLightSettingsDialog(SmartLight *light,
-                                    QWidget *parent = nullptr)
+  explicit SmartLightSettingsDialog(const QPointer<SmartLight> &light,
+                                    QWidget *parent)
       : BackdropDialog(parent), light(light) {
+    if (this->light.isNull()) {
+      QTimer::singleShot(0, this, &QDialog::reject);
+      return;
+    }
     setup_ui();
   };
 
 protected:
   void setup_ui() override {
+    if (light.isNull()) {
+      return;
+    }
+
     auto *layout = new QVBoxLayout(this); // NOLINT
     layout->addWidget(new QLabel(         // NOLINT
         QString("Light Configuration for %1").arg(light->display_name()),
@@ -74,6 +82,10 @@ protected:
 
     connect(closeBtn, &QPushButton::clicked, this, &QDialog::accept);
     connect(buttonGroup, &QButtonGroup::idClicked, [this](int choice) {
+      if (light.isNull()) {
+        return;
+      }
+
       const auto selected = static_cast<ColorTempSetting>(choice);
       const ColorTempRange range = light->get_color_temp_range();
 
@@ -101,5 +113,5 @@ protected:
   }
 
 private:
-  SmartLight *light;
+  QPointer<SmartLight> light;
 };

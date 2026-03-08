@@ -1,4 +1,5 @@
 #pragma once
+#include <QPointer>
 #include <QtWidgets/QMainWindow>
 #include <QFileSystemWatcher>
 #include <QFileInfo>
@@ -15,16 +16,16 @@ class MainWindow : public QMainWindow {
   Q_OBJECT
 
   public:
-  MainWindow(DeviceManager *manager, QWidget *parent = nullptr);
+  MainWindow(const QPointer<DeviceManager>& manager, QWidget *parent = nullptr);
 
-  void on_device_found(SmartDevice *device);
+  void on_device_found(const QPointer<SmartDevice>& device);
   static void update_style() ;
 
   private:
-  DeviceManager *manager;
-  QWidget *scroll_content;
-  QVBoxLayout *main_layout;
-  QFileSystemWatcher *watcher;
+  QPointer<DeviceManager> manager;
+  QPointer<QWidget> scroll_content;
+  QPointer<QVBoxLayout> main_layout;
+  QPointer<QFileSystemWatcher> watcher;
 
 
 };

@@ -24,11 +24,11 @@ DeviceManager::DeviceManager(QObject *parent)
   }
 }
 
-QList<SmartDevice *> DeviceManager::devices() const {
+QList<QPointer<SmartDevice>> DeviceManager::devices() const {
   return m_devices.values();
 }
 
-SmartDevice *DeviceManager::get_device(QString &id) const {
+QPointer<SmartDevice> DeviceManager::get_device(const QString &id) const {
   return m_devices.value(id, nullptr);
 }
 
@@ -39,7 +39,7 @@ void DeviceManager::handle_message(QString &topic, QJsonObject &payload) {
     return;
   }
 
-  for (auto *device : m_devices) {
+  for (const auto& device : m_devices) {
     QString device_topic = "zigbee2mqtt/" + device->friendly_name();
 
     if (topic == device_topic) {
@@ -67,7 +67,7 @@ void DeviceManager::add_new_device(QJsonArray const &payload) {
       continue;
     }
 
-    auto *device = DeviceFactory::create_device(load);
+    auto device = DeviceFactory::create_device(load);
     // it is  a device we support
     if (device != nullptr) {
       device->setParent(this);
@@ -83,10 +83,16 @@ void DeviceManager::add_new_device(QJsonArray const &payload) {
                     topic.toStdString(), payload.toStdString());
                 m_client.publish(pubmsg);
               });
+
+      connect(device, &QObject::destroyed, this, [this, device] {
+        if (m_devices.remove(device->ieee_address()) > 0) {
+          emit devices_changed();
+        }
+      });
     }
   }
 
-  for (auto *device : m_devices) {
+  for (const auto& device : m_devices) {
     QString topic = "zigbee2mqtt/" + device->friendly_name() + "/get";
     QString payload = R"({"state": ""})";
     mqtt::message_ptr pubmsg =

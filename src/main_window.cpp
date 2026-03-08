@@ -11,12 +11,16 @@
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
 
-MainWindow::MainWindow(DeviceManager *manager, QWidget *parent)
+MainWindow::MainWindow(const QPointer<DeviceManager> &manager, QWidget *parent)
     : QMainWindow(parent), manager(manager) {
+  if (manager.isNull()) {
+    return;
+  }
+
   auto *scroll_area = new QScrollArea(this); // NOLINT
   scroll_area->setWidgetResizable(true);
 
-  scroll_content = new QWidget();                // NOLINT
+  scroll_content = new QWidget(); // NOLINT
   scroll_content->setObjectName("root");
   main_layout = new QVBoxLayout(scroll_content); // NOLINT
 
@@ -25,16 +29,15 @@ MainWindow::MainWindow(DeviceManager *manager, QWidget *parent)
   scroll_area->setWidget(scroll_content);
   this->setCentralWidget(scroll_area);
 
-
   watcher = new QFileSystemWatcher({style_path}, this); // NOLINT
 
-  connect(manager, &DeviceManager::device_discovered, this,
+  connect(manager.data(), &DeviceManager::device_discovered, this,
           &MainWindow::on_device_found);
 
-  connect(watcher, &QFileSystemWatcher::fileChanged, this,
+  connect(watcher.data(), &QFileSystemWatcher::fileChanged, this,
           [this](const QString &path) {
             update_style();
-            if (!watcher->files().contains(path)) {
+            if (watcher && !watcher->files().contains(path)) {
               watcher->addPath(path);
             }
           });
@@ -42,7 +45,8 @@ MainWindow::MainWindow(DeviceManager *manager, QWidget *parent)
 }
 
 void MainWindow::update_style() {
-  std::cout << "[DEBUG] Trying to load style from: " << style_path.toStdString() << "\n";
+  std::cout << "[DEBUG] Trying to load style from: " << style_path.toStdString()
+            << "\n";
   QFile file(style_path);
   if (file.open(QFile::ReadOnly | QFile::Text)) {
     QTextStream stream(&file);
@@ -53,8 +57,13 @@ void MainWindow::update_style() {
   }
 }
 
-void MainWindow::on_device_found(SmartDevice *device) {
-  auto *widget = WidgetFactory::create_widget(device, scroll_content);
+void MainWindow::on_device_found(const QPointer<SmartDevice> &device) {
+  if (device.isNull() || main_layout.isNull() || scroll_content.isNull()) {
+    return;
+  }
+
+  auto widget =
+      WidgetFactory::create_widget(device, scroll_content);
 
   if (widget == nullptr) {
     return;

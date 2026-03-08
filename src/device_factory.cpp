@@ -59,7 +59,7 @@ std::optional<ColorTempRange> getColorTempRange(const QJsonObject &device) {
 // TODO: this will not work for devices I connect via MQTT exclusively, but I
 // can also just force those devices to use this format when they join the
 // network, maybe lol idk
-SmartDevice *create_device(QJsonObject const &data) {
+QPointer<SmartDevice> create_device(QJsonObject const &data) {
   auto friendly_name = data["friendly_name"].toString();
   auto ieee_address = data["ieee_address"].toString();
   auto model_id = data["model_id"].toString();

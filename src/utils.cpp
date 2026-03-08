@@ -4,6 +4,7 @@
 #include <QWidget>
 
 #include <QGuiApplication>
+#include <QPointer>
 #include <QScreen>
 
 QString StringUtils::format_for_display(const QString &string) {
@@ -16,12 +17,21 @@ QString StringUtils::format_for_display(const QString &string) {
   return words_list.join(' ');
 }
 
-void WidgetUtils::center_in_window(QWidget *widget) {
+void WidgetUtils::center_in_window(const QPointer<QWidget> &widget) {
+  if (widget.isNull()) {
+    return;
+  }
+
+  auto *parent = widget->parentWidget();
+  if (parent == nullptr) {
+    return;
+  }
+
   widget->ensurePolished();
   widget->adjustSize();
 
   // Use the content rectangle to avoid title-bar confusion
-  QRect parentArea = widget->parentWidget()->rect();
+  QRect parentArea = parent->rect();
   QRect childRect = widget->rect();
 
   // The math that never fails if dimensions are correct
