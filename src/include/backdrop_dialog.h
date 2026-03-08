@@ -3,10 +3,13 @@
 #include <QWidget>
 #include <QObject>
 #include <QEvent>
+#include <QPointer>
 
 
 class BackdropDialog : public QDialog {
     Q_OBJECT
+    Q_DISABLE_COPY_MOVE(BackdropDialog)
+
     public: 
         explicit BackdropDialog(QWidget *parent): QDialog(parent) {
             backdrop = new QWidget(parent->window()); //NOLINT
@@ -15,22 +18,28 @@ class BackdropDialog : public QDialog {
             backdrop->setGeometry(parent->window()->rect());
             backdrop->show();
 
-            
+
             setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog);
             this->show();
             this->raise();
             setAttribute(Qt::WA_DeleteOnClose);
 
-            connect(this, &QDialog::finished, backdrop, &QWidget::deleteLater);
             backdrop->installEventFilter(this);
 
         }
-    
+
+        ~BackdropDialog() override {
+            if (backdrop != nullptr) {
+                backdrop->hide();
+                backdrop->deleteLater();
+            }
+        }
+
     protected: 
         virtual void setup_ui() = 0;
     
     private: 
-        QWidget *backdrop;
+        QPointer<QWidget> backdrop;
         bool eventFilter(QObject *object, QEvent *event) override {
             if(object == backdrop && event->type() == QEvent::MouseButtonPress) {
                 this->reject();
