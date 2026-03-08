@@ -31,6 +31,14 @@ public:
 
   virtual void handle_update(QJsonObject const  &payload) = 0;
 
+  //For memory we specify the virtual destructure to ensure that derived classes are cleaned
+  // when using polymorphism 
+  virtual ~SmartDevice() = default;
+
+  //but since we defined the destructor we need to also explicitly create the copy/move constructors
+  // this would adhere to the rule of 5 since now the compiler will NOT create them by default
+  Q_DISABLE_COPY_MOVE(SmartDevice)
+
 signals:
 
   void state_changed(bool state);
