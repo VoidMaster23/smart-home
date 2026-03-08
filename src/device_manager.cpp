@@ -83,6 +83,12 @@ void DeviceManager::add_new_device(QJsonArray const &payload) {
                     topic.toStdString(), payload.toStdString());
                 m_client.publish(pubmsg);
               });
+
+      connect(device, &QObject::destroyed, this, [this, device] {
+        if (m_devices.remove(device->ieee_address()) > 0) {
+          emit devices_changed();
+        }
+      });
     }
   }
 
