@@ -11,7 +11,7 @@
 
 class DeviceManager : public QObject, public virtual mqtt::callback {
     Q_OBJECT
-    Q_PROPERTY(QList<SmartDevice*> devices READ devices NOTIFY devices_changed)
+    Q_PROPERTY(QList<QPointer<SmartDevice>> devices READ devices NOTIFY devices_changed)
 
     public:
         explicit DeviceManager(QObject *parent = nullptr);
