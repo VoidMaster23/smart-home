@@ -8,6 +8,7 @@
 class BackdropDialog : public QDialog {
     Q_OBJECT
     Q_DISABLE_COPY_MOVE(BackdropDialog)
+
     public: 
         explicit BackdropDialog(QWidget *parent): QDialog(parent) {
             backdrop = new QWidget(parent->window()); //NOLINT
@@ -16,19 +17,23 @@ class BackdropDialog : public QDialog {
             backdrop->setGeometry(parent->window()->rect());
             backdrop->show();
 
-            
+
             setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog);
             this->show();
             this->raise();
             setAttribute(Qt::WA_DeleteOnClose);
 
-            connect(this, &QDialog::finished, backdrop, &QWidget::deleteLater);
             backdrop->installEventFilter(this);
 
         }
 
-        virtual ~BackdropDialog() = default;
-    
+        virtual ~BackdropDialog() {
+            if (backdrop != nullptr) {
+                delete backdrop;
+                backdrop = nullptr;
+            }
+        }
+
     protected: 
         virtual void setup_ui() = 0;
     
