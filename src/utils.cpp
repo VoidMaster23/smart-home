@@ -4,6 +4,7 @@
 #include <QWidget>
 
 #include <QGuiApplication>
+#include <QPointer>
 #include <QScreen>
 
 QString StringUtils::format_for_display(const QString &string) {
@@ -16,7 +17,11 @@ QString StringUtils::format_for_display(const QString &string) {
   return words_list.join(' ');
 }
 
-void WidgetUtils::center_in_window(QWidget *widget) {
+void WidgetUtils::center_in_window(const QPointer<QWidget> &widget) {
+  if (widget.isNull()) {
+    return;
+  }
+
   widget->ensurePolished();
   widget->adjustSize();
 

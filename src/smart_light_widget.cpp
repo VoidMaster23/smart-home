@@ -19,6 +19,9 @@
 #include <QtWidgets/QWidget>
 
 void SmartLightWidget::update_slider_label_pos() {
+  if (m_brightness_slider.isNull()) {
+    return;
+  }
   auto *label = this->findChild<QLabel *>("label");
   int brightness = this->m_brightness_slider->value();
   label->setText(QString::number(
@@ -37,25 +40,30 @@ void SmartLightWidget::update_slider_label_pos() {
   label->move(x, y);
 }
 
-SmartLightWidget::SmartLightWidget(SmartLight *device, QWidget *parent)
-    : QWidget(parent), m_light_device(device), m_brightness_slider() {
+SmartLightWidget::SmartLightWidget(const QPointer<SmartLight> &device,
+                                   const QPointer<QWidget> &parent)
+    : QWidget(parent.data()), m_light_device(device) {
 
-  auto *layout = new QHBoxLayout(this);                       // NOLINT
-  auto *slider_container = new QHBoxLayout(this);             // NOLINT
-  auto *container = new QVBoxLayout(this);                    // NOLINT
-  auto *label_and_settings_container = new QHBoxLayout(this); // NOLINT
+  if (device.isNull()) {
+    return;
+  }
+
+  auto *layout = new QHBoxLayout(this);                   // NOLINT
+  auto *slider_container = new QHBoxLayout();             // NOLINT
+  auto *container = new QVBoxLayout();                    // NOLINT
+  auto *label_and_settings_container = new QHBoxLayout(); // NOLINT
 
   // label and settings container should be a flex layout
   label_and_settings_container->setProperty("type", "flex");
 
   // button label
-  m_name_label = new QLabel(); // NOLINT
+  m_name_label = new QLabel(this); // NOLINT
   m_name_label->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
   m_name_label->setText(device->display_name());
   m_name_label->setAlignment(Qt::AlignLeft);
 
   // settings button
-  btn_settings = new QPushButton(); // NOLINT
+  btn_settings = new QPushButton(this); // NOLINT
   btn_settings->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
   QIcon::setThemeName("Adwaita");
   QIcon icon = QIcon::fromTheme("preferences-system-symbolic");
@@ -64,8 +72,8 @@ SmartLightWidget::SmartLightWidget(SmartLight *device, QWidget *parent)
   btn_settings->setProperty("type", "settings_button");
 
   // slider control buttons
-  btn_reduce_brightness = new QPushButton();   // NOLINT
-  btn_increase_brightness = new QPushButton(); // NOLINT
+  btn_reduce_brightness = new QPushButton(this);   // NOLINT
+  btn_increase_brightness = new QPushButton(this); // NOLINT
   btn_increase_brightness->setSizePolicy(QSizePolicy::Preferred,
                                          QSizePolicy::Fixed);
   btn_reduce_brightness->setSizePolicy(QSizePolicy::Preferred,
@@ -75,7 +83,7 @@ SmartLightWidget::SmartLightWidget(SmartLight *device, QWidget *parent)
   btn_reduce_brightness->setText("<");
   btn_increase_brightness->setText(">");
 
-  m_brightness_slider = new QSlider(); // NOLINT
+  m_brightness_slider = new QSlider(this); // NOLINT
   m_brightness_slider->setOrientation(Qt::Orientation::Horizontal);
   m_brightness_slider->setMinimumWidth(100);
   m_brightness_slider->setMinimumHeight(4);
@@ -91,7 +99,7 @@ SmartLightWidget::SmartLightWidget(SmartLight *device, QWidget *parent)
   brightness_label->adjustSize();
   brightness_label->setObjectName("label");
 
-  m_toggle_button = new QPushButton(); // NOLINT
+  m_toggle_button = new QPushButton(this); // NOLINT
   m_toggle_button->setCheckable(true);
   m_toggle_button->setFixedSize(50, 50);
   auto device_state = device->state();
@@ -99,12 +107,12 @@ SmartLightWidget::SmartLightWidget(SmartLight *device, QWidget *parent)
   m_toggle_button->setText(device_state ? "ON" : "OFF");
 
   // connect the shit together
-  slider_container->addWidget(btn_reduce_brightness);
-  slider_container->addWidget(m_brightness_slider, 1);
-  slider_container->addWidget(btn_increase_brightness);
+  slider_container->addWidget(btn_reduce_brightness.data());
+  slider_container->addWidget(m_brightness_slider.data(), 1);
+  slider_container->addWidget(btn_increase_brightness.data());
 
-  label_and_settings_container->addWidget(m_name_label);
-  label_and_settings_container->addWidget(btn_settings);
+  label_and_settings_container->addWidget(m_name_label.data());
+  label_and_settings_container->addWidget(btn_settings.data());
 
   container->addLayout(label_and_settings_container);
   container->addLayout(slider_container, 1);
@@ -112,7 +120,7 @@ SmartLightWidget::SmartLightWidget(SmartLight *device, QWidget *parent)
   container->setSpacing(4);
 
   layout->addLayout(container, 1);
-  layout->addWidget(m_toggle_button);
+  layout->addWidget(m_toggle_button.data());
 
   setup_connections();
 
@@ -125,43 +133,69 @@ void SmartLightWidget::resizeEvent(QResizeEvent *event) {
 }
 
 void SmartLightWidget::setup_connections() {
-  connect(m_brightness_slider, &QSlider::valueChanged, this, [this](int value) {
-    m_light_device->set_brightness(value);
-    this->update_slider_label_pos();
-  });
+  if (m_light_device.isNull()) {
+    return;
+  }
 
-  connect(m_toggle_button, &QPushButton::toggled, this,
-          [this](bool is_checked) { m_light_device->set_state(is_checked); });
-
-  connect(btn_reduce_brightness, &QPushButton::pressed, this, [this]() {
-    const int value = m_brightness_slider->sliderPosition();
-    m_brightness_slider->setValue(value - m_brightness_slider->tickInterval());
-  });
-
-  connect(btn_increase_brightness, &QPushButton::pressed, this, [this]() {
-    const int value = m_brightness_slider->sliderPosition();
-    m_brightness_slider->setValue(value + m_brightness_slider->tickInterval());
-  });
-
-  connect(m_light_device, &SmartLight::brightness_changed, this,
+  connect(m_brightness_slider.data(), &QSlider::valueChanged, this,
           [this](int value) {
-            if (m_brightness_slider->isSliderDown()) {
+            if (m_light_device) {
+              m_light_device->set_brightness(value);
+              this->update_slider_label_pos();
+            }
+          });
+
+  connect(m_toggle_button.data(), &QPushButton::toggled, this,
+          [this](bool is_checked) {
+            if (m_light_device) {
+              m_light_device->set_state(is_checked);
+            }
+          });
+
+  connect(btn_reduce_brightness.data(), &QPushButton::pressed, this, [this]() {
+    if (m_brightness_slider) {
+      const int value = m_brightness_slider->sliderPosition();
+      m_brightness_slider->setValue(value -
+                                    m_brightness_slider->tickInterval());
+    }
+  });
+
+  connect(btn_increase_brightness.data(), &QPushButton::pressed, this,
+          [this]() {
+            if (m_brightness_slider) {
+              const int value = m_brightness_slider->sliderPosition();
+              m_brightness_slider->setValue(
+                  value + m_brightness_slider->tickInterval());
+            }
+          });
+
+  connect(m_light_device.data(), &SmartLight::brightness_changed, this,
+          [this](int value) {
+            if (m_brightness_slider.isNull() ||
+                m_brightness_slider->isSliderDown()) {
               return;
             }
-            const QSignalBlocker blocker(m_brightness_slider);
+            const QSignalBlocker blocker(m_brightness_slider.data());
             m_brightness_slider->setValue(value);
             this->update_slider_label_pos();
           });
 
-  connect(m_light_device, &SmartLight::state_changed, this,
+  connect(m_light_device.data(), &SmartLight::state_changed, this,
           [this](bool is_checked) {
-            const QSignalBlocker blocker(m_toggle_button);
+            if (m_toggle_button.isNull()) {
+              return;
+            }
+            const QSignalBlocker blocker(m_toggle_button.data());
             m_toggle_button->setChecked(is_checked);
             m_toggle_button->setText(is_checked ? "ON" : "OFF");
           });
 
-  connect(btn_settings, &QPushButton::clicked, this, [this]() {
-    auto *dialog = new SmartLightSettingsDialog(m_light_device, this->window()); // NOLINT
+  connect(btn_settings.data(), &QPushButton::clicked, this, [this]() {
+    if (m_light_device.isNull()) {
+      return;
+    }
+    auto *dialog =                                                    // NOLINT
+        new SmartLightSettingsDialog(m_light_device, this->window()); // NOLINT
 
     connect(dialog, &QDialog::finished, this, [this](int result) {
       if (result == QDialog::Accepted) {

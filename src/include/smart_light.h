@@ -4,6 +4,7 @@
 #include <QJsonObject>
 #include <QObject>
 #include <QString>
+#include <QPointer>
 
 /*
 Note: my logic assumes mireds, since my lights operate with mireds,
@@ -22,7 +23,7 @@ struct SmartLightParams {
   ColorTempRange color_temp_range;
   int color_temp{};
   int brightness{};
-  QObject *parent = nullptr;
+  QPointer<QObject> parent = nullptr;
 };
 
 class SmartLight : public SmartDevice {

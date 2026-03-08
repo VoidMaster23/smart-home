@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QPointer>
 #include <QObject>
 #include <QList>
 #include <QJsonObject>
@@ -16,7 +17,7 @@ class DeviceManager : public QObject, public virtual mqtt::callback {
         explicit DeviceManager(QObject *parent = nullptr);
 
         [[nodiscard]] QList<SmartDevice*> devices() const;
-        [[nodiscard]] SmartDevice* get_device(QString &id) const;
+        [[nodiscard]] QPointer<SmartDevice> get_device(QString &id) const;
 
         void handle_message(QString &topic , QJsonObject &payload);
 
@@ -31,7 +32,7 @@ class DeviceManager : public QObject, public virtual mqtt::callback {
     signals:
     
      void devices_changed();
-     void device_discovered(SmartDevice *device);
+     void device_discovered(const QPointer<SmartDevice>& device);
     private:
         QHash<QString, SmartDevice*> m_devices;
         mqtt::async_client m_client;   

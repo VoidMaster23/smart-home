@@ -28,7 +28,7 @@ QList<SmartDevice *> DeviceManager::devices() const {
   return m_devices.values();
 }
 
-SmartDevice *DeviceManager::get_device(QString &id) const {
+QPointer<SmartDevice> DeviceManager::get_device(QString &id) const {
   return m_devices.value(id, nullptr);
 }
 
@@ -67,7 +67,7 @@ void DeviceManager::add_new_device(QJsonArray const &payload) {
       continue;
     }
 
-    auto *device = DeviceFactory::create_device(load);
+    auto device = DeviceFactory::create_device(load);
     // it is  a device we support
     if (device != nullptr) {
       device->setParent(this);
