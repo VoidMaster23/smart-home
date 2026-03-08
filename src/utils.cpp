@@ -22,11 +22,16 @@ void WidgetUtils::center_in_window(const QPointer<QWidget> &widget) {
     return;
   }
 
+  auto *parent = widget->parentWidget();
+  if (parent == nullptr) {
+    return;
+  }
+
   widget->ensurePolished();
   widget->adjustSize();
 
   // Use the content rectangle to avoid title-bar confusion
-  QRect parentArea = widget->parentWidget()->rect();
+  QRect parentArea = parent->rect();
   QRect childRect = widget->rect();
 
   // The math that never fails if dimensions are correct

@@ -27,6 +27,9 @@ public:
   explicit SmartLightSettingsDialog(const QPointer<SmartLight> &light,
                                     QWidget *parent = nullptr)
       : BackdropDialog(parent), light(light) {
+    if (light.isNull()) {
+      return;
+    }
     setup_ui();
   };
 

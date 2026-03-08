@@ -63,7 +63,7 @@ void MainWindow::on_device_found(const QPointer<SmartDevice> &device) {
   }
 
   auto widget =
-      WidgetFactory::create_widget(device.data(), scroll_content.data());
+      WidgetFactory::create_widget(device, scroll_content);
 
   if (widget == nullptr) {
     return;

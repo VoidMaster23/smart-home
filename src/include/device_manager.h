@@ -16,7 +16,7 @@ class DeviceManager : public QObject, public virtual mqtt::callback {
     public:
         explicit DeviceManager(QObject *parent = nullptr);
 
-        [[nodiscard]] QList<SmartDevice*> devices() const;
+        [[nodiscard]] QList<QPointer<SmartDevice>> devices() const;
         [[nodiscard]] QPointer<SmartDevice> get_device(QString &id) const;
 
         void handle_message(QString &topic , QJsonObject &payload);
@@ -34,7 +34,7 @@ class DeviceManager : public QObject, public virtual mqtt::callback {
      void devices_changed();
      void device_discovered(const QPointer<SmartDevice>& device);
     private:
-        QHash<QString, SmartDevice*> m_devices;
+        QHash<QString, QPointer<SmartDevice>> m_devices;
         mqtt::async_client m_client;   
 
 };
