@@ -7,6 +7,7 @@
 
 class BackdropDialog : public QDialog {
     Q_OBJECT
+    Q_DISABLE_COPY_MOVE(BackdropDialog)
     public: 
         explicit BackdropDialog(QWidget *parent): QDialog(parent) {
             backdrop = new QWidget(parent->window()); //NOLINT
@@ -25,6 +26,8 @@ class BackdropDialog : public QDialog {
             backdrop->installEventFilter(this);
 
         }
+
+        virtual ~BackdropDialog() = default;
     
     protected: 
         virtual void setup_ui() = 0;
