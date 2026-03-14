@@ -40,10 +40,10 @@ public:
   [[nodiscard]] int color_temp() const;
   [[nodiscard]] ColorTempRange get_color_temp_range() const;
 
-  void set_brightness(int brightness);
-  void set_color_temp(int color_temp);
+  virtual void set_brightness(int brightness) = 0;
+  virtual void set_color_temp(int color_temp) = 0;
 
-  void handle_update(QJsonObject const &payload) override;
+  void handle_update(QJsonObject const &payload) override = 0;
 
   static constexpr int min_brightness = 0;
   static constexpr int max_brightness = 254;
@@ -52,7 +52,7 @@ signals:
   void brightness_changed(int brightness);
   void color_temp_changed(int color_temp);
 
-private:
+protected:
   int m_brightness;
   int m_color_temp;
   ColorTempRange color_temp_range;
