@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QString>
+#include <QByteArray>
 
 /**
  * Abstract base class that discovers and tracks SmartDevice instances and
@@ -31,7 +32,7 @@
 /**
  * @brief Handle an incoming message associated with a topic.
  * @param topic Topic or routing key for the message.
- * @param payload JSON payload of the message.
+ * @param payload Raw byte array payload of the message.
  */
 
 /**
@@ -53,7 +54,7 @@ class DeviceProvider: public QObject {
 
         Q_DISABLE_COPY_MOVE(DeviceProvider)
 
-        virtual void handle_message(const QString &topic, const QJsonObject &payload) = 0;
+        virtual void handle_message(const QString &topic, const QByteArray &payload) = 0;
         virtual void poll_all_devices() = 0;
         virtual void on_connected() = 0;
     

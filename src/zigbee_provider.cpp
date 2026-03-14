@@ -24,18 +24,31 @@
  *
  * @param topic Full MQTT topic string for the incoming message; must start with the provider's
  *              MQTT topic prefix to be processed.
- * @param payload JSON payload of the MQTT message.
+ * @param payload Raw byte array payload of the MQTT message.
  */
 void ZigbeeProvider::handle_message(const QString &topic,
-                                    const QJsonObject &payload) {
+                                    const QByteArray &payload) {
   if (!topic.startsWith(mqtt_topic_prefix()) || topic.endsWith("/set")) {
     return;
   }
 
+  QJsonDocument doc = QJsonDocument::fromJson(payload);
+  if (doc.isNull()) {
+    return;
+  }
+
   if (topic == mqtt_topic_prefix() + "bridge/devices") {
-    QJsonArray devices = payload["devices"].toArray();
-    process_discovery(devices);
-    poll_all_devices();
+    QJsonArray devices;
+    if (doc.isArray()) {
+        devices = doc.array();
+    } else if (doc.isObject()) {
+        devices = doc.object()["devices"].toArray();
+    }
+    
+    if (!devices.isEmpty()) {
+        process_discovery(devices);
+        poll_all_devices();
+    }
     return;
   }
 
@@ -44,7 +57,10 @@ void ZigbeeProvider::handle_message(const QString &topic,
   if (name.contains("bridge")) {
     return;
   }
-  route_update(name, payload);
+  
+  if (doc.isObject()) {
+    route_update(name, doc.object());
+  }
 }
 
 /**

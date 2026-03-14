@@ -9,7 +9,7 @@ class ZigbeeProvider : public DeviceProvider, public MqttMixin {
     public:
         explicit ZigbeeProvider(mqtt::async_client &client, QObject *parent = nullptr);
 
-    void handle_message(const QString &topic, const QJsonObject &payload) override;
+    void handle_message(const QString &topic, const QByteArray &payload) override;
     void poll_all_devices() override;
     void on_connected() override;
     

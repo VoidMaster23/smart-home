@@ -1,9 +1,6 @@
 #include "device_manager.h"
 #include "smart_device.h"
 
-#include <QJsonArray>
-#include <QJsonDocument>
-#include <QJsonObject>
 #include <QList>
 #include <QObject>
 #include <QString>
@@ -92,30 +89,17 @@ void DeviceManager::on_device_removed(const QString &id) {
 }
 
 /**
- * @brief Parse an incoming MQTT message payload as JSON and forward it with the topic to all providers.
+ * @brief Forward an incoming MQTT message payload as a raw byte array to all registered providers.
  *
- * If the payload is a JSON object it is forwarded unchanged; if the payload is a JSON array it is wrapped
- * into an object under the "devices" key before forwarding. Each non-null provider receives the topic and
- * resulting JSON object via its handle_message method.
+ * Each non-null provider receives the topic and the original payload bytes via its handle_message method.
  *
  * @param msg Pointer to the received MQTT message.
  */
 void DeviceManager::message_arrived(mqtt::const_message_ptr msg) {
   QString topic = QString::fromStdString(msg->get_topic());
-  QByteArray payload_bytes = QByteArray::fromStdString(msg->get_payload_str());
+  QByteArray payload = QByteArray::fromStdString(msg->get_payload_str());
   
-  // We expect JSON payloads for all our devices/providers
-  QJsonDocument doc = QJsonDocument::fromJson(payload_bytes);
-  QJsonObject payload;
-  
-  if (doc.isObject()) {
-    payload = doc.object();
-  } else if (doc.isArray()) {
-    // Some messages (like bridge/devices) might be arrays, wrap them or let providers handle
-    payload["devices"] = doc.array();
-  }
-
-  // Broadcast to all providers
+  // Broadcast raw bytes to all providers; providers own parsing (JSON, etc.)
   for (auto& provider : m_providers) {
     if (provider) {
         provider->handle_message(topic, payload);
