@@ -12,10 +12,9 @@ void ZigbeeLight::set_brightness(const int brightness) {
 
   update_brightness(brightness);
 
-  QString topic = "zigbee2mqtt/" + friendly_name() + "/set";
-  QString payload = QString("{\"brightness\": %1}").arg(m_brightness);
-
-  emit send_command(topic, payload);
+  QJsonObject command;
+  command["brightness"] = brightness;
+  emit request_command(command);
 }
 
 void ZigbeeLight::set_color_temp(const int color_temp) {
@@ -25,10 +24,9 @@ void ZigbeeLight::set_color_temp(const int color_temp) {
 
   update_color_temp(color_temp);
 
-  QString topic = "zigbee2mqtt/" + friendly_name() + "/set";
-  QString payload = QString("{\"color_temp\": %1}").arg(m_color_temp);
-
-  emit send_command(topic, payload);
+  QJsonObject command;
+  command["color_temp"] = color_temp;
+  emit request_command(command);
 }
 
 void ZigbeeLight::handle_update(QJsonObject const &payload) {

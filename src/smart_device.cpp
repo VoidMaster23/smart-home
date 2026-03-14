@@ -8,16 +8,16 @@
 
 SmartDevice::SmartDevice(QString id, QString name, QString model,
                          DeviceType type, QObject *parent)
-    : QObject(parent), m_friendly_name(std::move(name)),
-      m_model_id(std::move(model)), m_ieee_address(std::move(id)), type(type),
+    : QObject(parent), m_name(std::move(name)),
+      m_model(std::move(model)), m_id(std::move(id)), type(type),
       m_state(false) {
-  m_display_name = StringUtils::format_for_display(m_friendly_name);
+  m_display_name = StringUtils::format_for_display(m_name);
 }
 
-QString SmartDevice::friendly_name() const { return this->m_friendly_name; };
+QString SmartDevice::name() const { return this->m_name; }
 
-QString SmartDevice::model_id() const { return this->m_model_id; }
-QString SmartDevice::ieee_address() const { return this->m_ieee_address; }
+QString SmartDevice::model() const { return this->m_model; }
+QString SmartDevice::id() const { return this->m_id; }
 DeviceType SmartDevice::device_type() const { return this->type; }
 QString SmartDevice::display_name() const { return this->m_display_name; }
 
@@ -38,9 +38,8 @@ void SmartDevice::set_state(bool state) {
   }
 
   update_state(state);
-  QString topic = "zigbee2mqtt/" + friendly_name() + "/set";
-
-  QString state_str = state ? "ON" : "OFF";
-  QString payload = QString(R"({"state": "%1"})").arg(state_str);
-  emit send_command(topic, payload);
+  
+  QJsonObject command;
+  command["state"] = state ? "ON" : "OFF";
+  emit request_command(command);
 }
