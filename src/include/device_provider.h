@@ -4,6 +4,8 @@
 #include <QObject>
 #include <QString>
 #include <QByteArray>
+#include <QPointer>
+#include <QMap>
 
 /**
  * Abstract base class that discovers and tracks SmartDevice instances and

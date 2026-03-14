@@ -3,6 +3,8 @@
 #include "device_provider.h"
 #include "mqtt_capability.h"
 #include <QMap>
+#include <QJsonObject>
+#include <QJsonArray>
 
 class ZigbeeProvider : public DeviceProvider, public MqttMixin {
     Q_OBJECT
