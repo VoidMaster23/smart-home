@@ -53,6 +53,9 @@ signals:
   void color_temp_changed(int color_temp);
 
 protected:
+  void update_brightness(int brightness);
+  void update_color_temp(int color_temp);
+
   int m_brightness;
   int m_color_temp;
   ColorTempRange color_temp_range;
