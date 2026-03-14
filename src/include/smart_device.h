@@ -4,6 +4,46 @@
 #include <QObject>
 #include <QString>
 
+/**
+ * Construct a SmartDevice with identifiers, display properties, and device type.
+ * @param id Device unique identifier (e.g., IEEE address or internal id).
+ * @param name Human-friendly device name.
+ * @param model Device model identifier.
+ * @param type DeviceType enum value describing the device category.
+ * @param parent Optional QObject parent.
+ */
+/**
+ * Get the device name.
+ * @returns The human-friendly name of the device.
+ */
+/**
+ * Get the device model identifier.
+ * @returns The model identifier string.
+ */
+/**
+ * Get the device unique identifier.
+ * @returns The device id string.
+ */
+/**
+ * Get the device on/off state.
+ * @returns `true` if the device is on, `false` otherwise.
+ */
+/**
+ * Get the device type.
+ * @returns The DeviceType value for this device.
+ */
+/**
+ * Get the device display name.
+ * @returns The display name used for UI presentation.
+ */
+/**
+ * Set the device on/off state.
+ * @param state `true` to mark the device as on, `false` to mark it as off.
+ */
+/**
+ * Handle an incoming JSON payload to update device state or produce commands.
+ * @param payload JSON object containing update information or command data relevant to the device.
+ */
 enum class DeviceType { SmartLight };
 
 class SmartDevice : public QObject {

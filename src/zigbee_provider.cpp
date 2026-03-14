@@ -1,13 +1,31 @@
-
 #include "zigbee_provider.h"
 #include "device_factory.h"
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QObject>
 
-ZigbeeProvider::ZigbeeProvider(mqtt::async_client &client, QObject *parent)
+/**
+     * @brief Create a Zigbee provider bound to an MQTT client and the "zigbee2mqtt/" topic prefix.
+     *
+     * Initializes a provider that publishes and subscribes using the given MQTT client under the
+     * "zigbee2mqtt/" topic namespace.
+     *
+     * @param client MQTT asynchronous client used for publishing and subscribing.
+     * @param parent Optional QObject parent for ownership and lifetime management.
+     */
+    ZigbeeProvider::ZigbeeProvider(mqtt::async_client &client, QObject *parent)
     : DeviceProvider(parent), MqttMixin(client, "zigbee2mqtt/") {}
 
+/**
+ * @brief Process an incoming MQTT message and route it to the appropriate handler.
+ *
+ * Inspects the MQTT topic and either ignores irrelevant topics, handles a bridge discovery
+ * message, or forwards a device update to its route handler.
+ *
+ * @param topic Full MQTT topic string for the incoming message; must start with the provider's
+ *              MQTT topic prefix to be processed.
+ * @param payload JSON payload of the MQTT message.
+ */
 void ZigbeeProvider::handle_message(const QString &topic,
                                     const QJsonObject &payload) {
   if (!topic.startsWith(mqtt_topic_prefix()) || topic.endsWith("/set")) {
@@ -29,6 +47,21 @@ void ZigbeeProvider::handle_message(const QString &topic,
   route_update(name, payload);
 }
 
+/**
+ * @brief Processes a discovery payload from Zigbee2MQTT and registers new devices.
+ *
+ * Iterates the provided array of device descriptors, ignoring coordinator entries
+ * and entries without an `ieee_address` or already-registered devices. For each
+ * newly created device the provider stores mappings (id → device, name → id),
+ * emits `device_discovered`, connects the device's request_command signal so
+ * that outgoing commands are published to the MQTT topic "<prefix><device_name>/set",
+ * and attaches a cleanup handler that removes mappings and emits `device_removed`
+ * when the device is destroyed.
+ *
+ * @param devices Array of device objects as received from the Zigbee2MQTT
+ *                bridge (each object is expected to contain an
+ *                `ieee_address` and a `name`/`type` field).
+ */
 void ZigbeeProvider::process_discovery(const QJsonArray &devices) {
   for (const auto data : devices) {
     auto load = data.toObject();
@@ -72,6 +105,14 @@ void ZigbeeProvider::process_discovery(const QJsonArray &devices) {
   }
 }
 
+/**
+ * @brief Routes an incoming payload to the device identified by its friendly name.
+ *
+ * If the friendly name maps to a known device and that device exists, forwards the payload to the device's update handler; otherwise does nothing.
+ *
+ * @param friendly_name Friendly name of the target device (as derived from the MQTT topic).
+ * @param payload JSON payload to deliver to the device.
+ */
 void ZigbeeProvider::route_update(const QString &friendly_name,
                                   const QJsonObject &payload) {
   if (!m_name_to_id.contains(friendly_name)) {
@@ -85,11 +126,22 @@ void ZigbeeProvider::route_update(const QString &friendly_name,
   };
 }
 
+/**
+ * @brief Requests Zigbee2MQTT to enumerate devices by publishing to the bridge devices topic.
+ *
+ * Publishes an empty payload to "<prefix>bridge/devices" via the provider's MQTT client to trigger device discovery.
+ */
 void ZigbeeProvider::on_connected() {
   QString topic = mqtt_topic_prefix() + "bridge/devices";
   mqtt_client()->publish(mqtt::make_message(topic.toStdString(), "", 1, false));
 }
 
+/**
+ * @brief Requests state updates from every known Zigbee device.
+ *
+ * Iterates stored devices and publishes a {"state": ""} get payload to each device's
+ * MQTT "<prefix><device_name>/get" topic; null entries are skipped.
+ */
 void ZigbeeProvider::poll_all_devices() {
   for (const auto &device : m_devices) {
     if(device == nullptr) {

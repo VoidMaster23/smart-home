@@ -4,6 +4,43 @@
 #include <QObject>
 #include <QString>
 
+/**
+ * Abstract base class that discovers and tracks SmartDevice instances and
+ * exposes lifecycle hooks for connection and message handling.
+ */
+ 
+/**
+ * @brief Emitted when a device is discovered and becomes available.
+ * @param device Pointer to the discovered SmartDevice.
+ */
+ 
+/**
+ * @brief Emitted when a device is removed from tracking.
+ * @param id Identifier of the removed device.
+ */
+
+/**
+ * @brief Construct a DeviceProvider with an optional parent QObject.
+ * @param parent Parent QObject, or nullptr.
+ */
+
+/**
+ * @brief Virtual destructor.
+ */
+
+/**
+ * @brief Handle an incoming message associated with a topic.
+ * @param topic Topic or routing key for the message.
+ * @param payload JSON payload of the message.
+ */
+
+/**
+ * @brief Poll all known or discoverable devices to refresh state or discover new ones.
+ */
+
+/**
+ * @brief Called when a connection has been established and the provider can begin communication.
+ */
 class DeviceProvider: public QObject {
     Q_OBJECT
     signals:
