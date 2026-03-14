@@ -75,9 +75,9 @@ void SmartDevice::update_state(bool state) {
  *
  * Updates the device state only if the provided state differs from the current state,
  * and emits the request_command signal with a QJsonObject containing the key
- * "state" mapped to "ON" or "OFF".
+ * "state" mapped to a boolean value.
  *
- * @param state `true` to set the device to "ON", `false` to set it to "OFF".
+ * @param state `true` to set the device to on, `false` to set it to off.
  */
 void SmartDevice::set_state(bool state) {
   if (state == m_state) {
@@ -87,6 +87,6 @@ void SmartDevice::set_state(bool state) {
   update_state(state);
   
   QJsonObject command;
-  command["state"] = state ? "ON" : "OFF";
+  command["state"] = state;
   emit request_command(command);
 }
