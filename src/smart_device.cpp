@@ -23,13 +23,21 @@ QString SmartDevice::display_name() const { return this->m_display_name; }
 
 bool SmartDevice::state() const { return this->m_state; }
 
-void SmartDevice::set_state(bool state) {
+void SmartDevice::update_state(bool state) {
   if (state == m_state) {
     return;
   }
 
   m_state = state;
   emit this->state_changed(m_state);
+}
+
+void SmartDevice::set_state(bool state) {
+  if (state == m_state) {
+    return;
+  }
+
+  update_state(state);
   QString topic = "zigbee2mqtt/" + friendly_name() + "/set";
 
   QString state_str = state ? "ON" : "OFF";

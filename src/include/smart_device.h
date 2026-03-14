@@ -45,6 +45,9 @@ signals:
   void friendly_name_changed();
   void send_command(QString topic, QString payload);
 
+protected:
+  void update_state(bool state);
+
 private:
   QString m_friendly_name;
   QString m_model_id;
