@@ -10,11 +10,11 @@ SmartLight::SmartLight(SmartLightParams params)
                   std::move(params.model), DeviceType::SmartLight,
                   params.parent),
       m_brightness(params.brightness), m_color_temp(params.color_temp),
-      color_temp_range(params.color_temp_range) {}
+      m_color_temp_range(params.color_temp_range) {}
 
 int SmartLight::brightness() const { return this->m_brightness; }
 int SmartLight::color_temp() const { return this->m_color_temp; }
-ColorTempRange SmartLight::get_color_temp_range() const { return this->color_temp_range; }
+ColorTempRange SmartLight::get_color_temp_range() const { return this->m_color_temp_range; }
 
 void SmartLight::update_brightness(int brightness) {
   if (brightness == m_brightness) {

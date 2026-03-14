@@ -58,5 +58,5 @@ protected:
 
   int m_brightness;
   int m_color_temp;
-  ColorTempRange color_temp_range;
+  ColorTempRange m_color_temp_range;
 };

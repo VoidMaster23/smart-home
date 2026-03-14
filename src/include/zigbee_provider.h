@@ -2,23 +2,30 @@
 
 #include "device_provider.h"
 #include "mqtt_capability.h"
-#include <QMap>
-#include <QJsonObject>
 #include <QJsonArray>
+#include <QJsonObject>
+#include <QMap>
+#include <QSet>
 
 class ZigbeeProvider : public DeviceProvider, public MqttMixin {
-    Q_OBJECT
-    public:
-        explicit ZigbeeProvider(mqtt::async_client &client, QObject *parent = nullptr);
+  Q_OBJECT
+public:
+  explicit ZigbeeProvider(mqtt::async_client &client, QObject *parent = nullptr);
 
-    void handle_message(const QString &topic, const QByteArray &payload) override;
-    void poll_all_devices() override;
-    void on_connected() override;
-    
-    private:
-        void process_discovery(const QJsonArray &devices);
-        void route_update(const QString &friendly_name, const QJsonObject &payload);
-    
-    protected:
-        QMap<QString, QString> m_name_to_id;
+  void handle_message(const QString &topic, const QByteArray &payload) override;
+  void poll_all_devices() override;
+  void on_connected() override;
+
+private:
+  void process_discovery(const QJsonArray &devices);
+  void route_update(const QString &friendly_name, const QJsonObject &payload);
+
+  // Helper methods for discovery
+  [[nodiscard]] static QSet<QString> extract_snapshot_ids(const QJsonArray &devices) ;
+  void register_new_devices(const QJsonArray &devices);
+  void setup_new_device(const QPointer<SmartDevice> &device);
+  void reconcile_missing_devices(const QSet<QString> &snapshot_ids);
+
+protected:
+  QMap<QString, QString> m_name_to_id;
 };

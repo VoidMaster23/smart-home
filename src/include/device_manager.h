@@ -35,7 +35,7 @@ class DeviceManager : public QObject, public virtual mqtt::callback {
      void device_discovered(SmartDevice *device);
 
     private slots:
-        void on_device_discovered(QPointer<SmartDevice> device);
+        void on_device_discovered(const QPointer<SmartDevice> &device);
         void on_device_removed(const QString &id);
 
     private:

@@ -12,7 +12,8 @@
 #include <QtWidgets/QWidget>
 
 MainWindow::MainWindow(const QPointer<DeviceManager> &manager, QWidget *parent)
-    : QMainWindow(parent), manager(manager) {
+    : QMainWindow(parent), manager(manager), scroll_content(nullptr),
+      main_layout(nullptr), watcher(nullptr) {
   if (manager.isNull()) {
     return;
   }
@@ -20,7 +21,7 @@ MainWindow::MainWindow(const QPointer<DeviceManager> &manager, QWidget *parent)
   auto *scroll_area = new QScrollArea(this); // NOLINT
   scroll_area->setWidgetResizable(true);
 
-  scroll_content = new QWidget(); // NOLINT
+  scroll_content = new QWidget();                // NOLINT
   scroll_content->setObjectName("root");
   main_layout = new QVBoxLayout(scroll_content); // NOLINT
 
@@ -57,13 +58,14 @@ void MainWindow::update_style() {
   }
 }
 
-void MainWindow::on_device_found(const QPointer<SmartDevice> &device) {
+void MainWindow::on_device_found(
+    const QPointer<SmartDevice>
+        &device) { // NOLINT(readability-convert-member-functions-to-static)
   if (device.isNull() || main_layout.isNull() || scroll_content.isNull()) {
     return;
   }
 
-  auto widget =
-      WidgetFactory::create_widget(device, scroll_content);
+  auto widget = WidgetFactory::create_widget(device, scroll_content);
 
   if (widget == nullptr) {
     return;

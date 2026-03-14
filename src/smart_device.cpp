@@ -17,13 +17,12 @@
  * @param type DeviceType enum value describing the device category.
  * @param parent Optional QObject parent for ownership. 
  */
-SmartDevice::SmartDevice(QString id, QString name, QString model,
+SmartDevice::SmartDevice(QString id, QString name, QString model, // NOLINT(bugprone-easily-swappable-parameters)
                          DeviceType type, QObject *parent)
-    : QObject(parent), m_name(std::move(name)),
-      m_model(std::move(model)), m_id(std::move(id)), type(type),
-      m_state(false) {
-  m_display_name = StringUtils::format_for_display(m_name);
-}
+    : QObject(parent), m_name(std::move(name)), m_model(std::move(model)),
+      m_id(std::move(id)),
+      m_display_name(StringUtils::format_for_display(m_name)), m_type(type),
+      m_state(false) {}
 
 /**
  * @brief Retrieve the device's configured name.
@@ -49,7 +48,7 @@ QString SmartDevice::id() const { return this->m_id; }
  *
  * @return DeviceType The enum value representing this device's type.
  */
-DeviceType SmartDevice::device_type() const { return this->type; }
+DeviceType SmartDevice::device_type() const { return this->m_type; }
 /**
  * @brief Human-friendly display name for the device.
  *

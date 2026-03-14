@@ -89,6 +89,6 @@ private:
   QString m_model;
   QString m_id;
   QString m_display_name;
-  DeviceType type;
+  DeviceType m_type;
   bool m_state;
 };
