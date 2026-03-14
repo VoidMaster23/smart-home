@@ -17,6 +17,9 @@ class DeviceManager : public QObject, public virtual mqtt::callback {
     public:
         explicit DeviceManager(QObject *parent = nullptr);
 
+        void register_provider(DeviceProvider* provider);
+        mqtt::async_client& mqtt_client() { return m_client; }
+
         [[nodiscard]] QList<QPointer<SmartDevice>> devices() const;
         [[nodiscard]] QPointer<SmartDevice> get_device(const QString &id) const;
 

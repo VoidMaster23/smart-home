@@ -1,5 +1,4 @@
 #include "device_manager.h"
-#include "zigbee_provider.h"
 #include "smart_device.h"
 
 #include <QJsonArray>
@@ -16,29 +15,32 @@
 const std::string mqtt_address{std::string(std::getenv("MQTT_ADDRESS"))};
 
 /**
- * @brief Constructs a DeviceManager and initializes MQTT integration and device providers.
+ * @brief Constructs a DeviceManager and initializes MQTT integration.
  *
- * Initializes the MQTT client callback, creates and registers the Zigbee provider, and connects
- * provider signals for device discovery and removal to the manager's handlers. Any exception
- * thrown during initialization is caught and reported to standard error.
+ * Initializes the MQTT client callback.
  *
- * @param parent QObject ownership parent; ownership of created providers is transferred to this QObject.
+ * @param parent QObject ownership parent.
  */
 DeviceManager::DeviceManager(QObject *parent)
     : QObject(parent), m_client(mqtt_address) {
   try {
     m_client.set_callback(*this);
-    
-    // Initialize providers
-    auto* zigbee = new ZigbeeProvider(m_client, this); //NOLINT
-    m_providers.append(zigbee);
-
-    connect(zigbee, &DeviceProvider::device_discovered, this, &DeviceManager::on_device_discovered);
-    connect(zigbee, &DeviceProvider::device_removed, this, &DeviceManager::on_device_removed);
-
   } catch (...) {
     std::cerr << "Could not connect to the MQTT broker" << '\n';
   }
+}
+
+/**
+ * @brief Register a device provider with the manager.
+ *
+ * @param provider Pointer to the DeviceProvider to register.
+ */
+void DeviceManager::register_provider(DeviceProvider* provider) {
+    if (!provider) return;
+
+    m_providers.append(provider);
+    connect(provider, &DeviceProvider::device_discovered, this, &DeviceManager::on_device_discovered);
+    connect(provider, &DeviceProvider::device_removed, this, &DeviceManager::on_device_removed);
 }
 
 QList<QPointer<SmartDevice>> DeviceManager::devices() const {
