@@ -12,7 +12,7 @@ void ZigbeeLight::set_brightness(const int brightness) {
   this->m_brightness = brightness;
   emit this->brightness_changed(m_brightness);
 
-  QString topic = "zigbee1mqtt/" + friendly_name() + "/set";
+  QString topic = "zigbee2mqtt/" + friendly_name() + "/set";
   QString payload = QString("{\"brightness\": %0}").arg(m_brightness);
 
   emit send_command(topic, payload);

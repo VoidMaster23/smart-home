@@ -29,8 +29,8 @@ bool is_light(const QJsonObject &data) {
                              });
 }
 
-std::optional<ColorTempRange> getColorTempRange(const QJsonObject &device) {
-  const auto exposes = device["definition"].toObject()["exposes"].toArray();
+std::optional<ColorTempRange> get_color_temp_range(const QJsonObject &data) {
+  const auto exposes = data["definition"].toObject()["exposes"].toArray();
 
   auto it = std::ranges::find_if(exposes, [](const QJsonValue &val) {
     return val.toObject()["type"].toString() == "light";
@@ -62,7 +62,7 @@ SmartLightParams parse_light_params(const QJsonObject &data) {
   auto friendly_name = data["friendly_name"].toString();
   auto ieee_address = data["ieee_address"].toString();
   auto model_id = data["model_id"].toString();
-  auto color_temp_range = getColorTempRange(data).value_or(ColorTempRange{});
+  auto color_temp_range = get_color_temp_range(data).value_or(ColorTempRange{});
 
   return SmartLightParams{
       .id = ieee_address,
