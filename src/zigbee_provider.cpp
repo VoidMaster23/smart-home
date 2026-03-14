@@ -30,7 +30,14 @@ ZigbeeProvider::ZigbeeProvider(mqtt::async_client &client, QObject *parent)
  */
 void ZigbeeProvider::handle_message(const QString &topic,
                                     const QByteArray &payload) {
-  if (!topic.startsWith(mqtt_topic_prefix()) || topic.endsWith("/set")) {
+  if (!topic.startsWith(mqtt_topic_prefix())) {
+    return;
+  }
+
+  QString rel_topic = topic.mid(mqtt_topic_prefix().length());
+
+  // Ignore outgoing commands (topics ending in "/set" for a device)
+  if (rel_topic.endsWith("/set")) {
     return;
   }
 
@@ -39,32 +46,31 @@ void ZigbeeProvider::handle_message(const QString &topic,
     return;
   }
 
-  if (topic == mqtt_topic_prefix() + "bridge/devices") {
+  // Precise bridge namespace check
+  if (rel_topic == "bridge/devices") {
     QJsonArray devices;
     if (doc.isArray()) {
-      devices = doc.array();
+        devices = doc.array();
     } else if (doc.isObject()) {
-      devices = doc.object()["devices"].toArray();
+        devices = doc.object()["devices"].toArray();
     }
 
     if (!devices.isEmpty()) {
-      process_discovery(devices);
-      poll_all_devices();
+        process_discovery(devices);
+        poll_all_devices();
     }
     return;
   }
 
-  QString name = topic.mid(mqtt_topic_prefix().length());
-
-  if (name.contains("bridge")) {
+  if (rel_topic == "bridge" || rel_topic.startsWith("bridge/")) {
     return;
   }
 
+  // If it's not a command and not in the bridge namespace, it's a device update
   if (doc.isObject()) {
-    route_update(name, doc.object());
+    route_update(rel_topic, doc.object());
   }
 }
-
 /**
  * @brief Processes a discovery payload from Zigbee2MQTT and registers new
  * devices.
