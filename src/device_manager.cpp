@@ -1,5 +1,5 @@
 #include "device_manager.h"
-#include "device_factory.h"
+#include "zigbee_provider.h"
 #include "smart_device.h"
 
 #include <QJsonArray>
@@ -19,8 +19,16 @@ DeviceManager::DeviceManager(QObject *parent)
     : QObject(parent), m_client(mqtt_address) {
   try {
     m_client.set_callback(*this);
+    
+    // Initialize providers
+    auto* zigbee = new ZigbeeProvider(m_client, this); //NOLINT
+    m_providers.append(zigbee);
+
+    connect(zigbee, &DeviceProvider::device_discovered, this, &DeviceManager::on_device_discovered);
+    connect(zigbee, &DeviceProvider::device_removed, this, &DeviceManager::on_device_removed);
+
   } catch (...) {
-    std::cout << "Could not connect to the bih" << '\n';
+    std::cerr << "Could not connect to the MQTT broker" << '\n';
   }
 }
 
@@ -32,99 +40,46 @@ QPointer<SmartDevice> DeviceManager::get_device(const QString &id) const {
   return m_devices.value(id, nullptr);
 }
 
-void DeviceManager::handle_message(QString &topic, QJsonObject &payload) {
-  std::cout << "Topic: " << topic.toStdString() << '\n';
-
-  if (topic.endsWith("/set")) {
-    return;
-  }
-
-  for (const auto& device : m_devices) {
-    QString device_topic = "zigbee2mqtt/" + device->friendly_name();
-
-    if (topic == device_topic) {
-      device->handle_update(payload);
-      return;
-    }
-  }
-
-  QJsonDocument data{payload};
-
-  std::cout << "Payload: " << data.toJson(QJsonDocument::Indented).toStdString()
-            << '\n';
+void DeviceManager::on_device_discovered(QPointer<SmartDevice> device) {
+  if (!device) return;
+  
+  m_devices[device->id()] = device;
+  emit devices_changed();
+  emit device_discovered(device.get());
+  
+  std::cout << "Device " << device->name().toStdString()
+            << " successfully discovered and added to manager" << "\n";
 }
 
-void DeviceManager::add_new_device(QJsonArray const &payload) {
-  for (const auto data : payload) {
-    auto load = data.toObject();
-    if (load["type"] == "Coordinator") {
-      continue;
-    }
-
-    auto ieee_address = load["ieee_address"].toString();
-
-    if (ieee_address.isEmpty() || this->m_devices.contains(ieee_address)) {
-      continue;
-    }
-
-    auto device = DeviceFactory::create_device(load);
-    // it is  a device we support
-    if (device != nullptr) {
-      device->setParent(this);
-      this->m_devices[ieee_address] = device;
-
-      emit devices_changed();
-      emit device_discovered(device);
-      std::cout << "Device " << device->friendly_name().toStdString()
-                << " successfuully added" << "\n";
-      connect(device, &SmartDevice::send_command, this,
-              [this](const QString &topic, const QString &payload) {
-                mqtt::message_ptr pubmsg = mqtt::make_message(
-                    topic.toStdString(), payload.toStdString());
-                m_client.publish(pubmsg);
-              });
-
-      connect(device, &QObject::destroyed, this, [this, device] {
-        if (m_devices.remove(device->ieee_address()) > 0) {
-          emit devices_changed();
-        }
-      });
-    }
-  }
-
-  for (const auto& device : m_devices) {
-    QString topic = "zigbee2mqtt/" + device->friendly_name() + "/get";
-    QString payload = R"({"state": ""})";
-    mqtt::message_ptr pubmsg =
-        mqtt::make_message(topic.toStdString(), payload.toStdString());
-
-    m_client.publish(pubmsg);
+void DeviceManager::on_device_removed(const QString &id) {
+  if (m_devices.remove(id) > 0) {
+    emit devices_changed();
+    std::cout << "Device " << id.toStdString() << " removed from manager" << "\n";
   }
 }
 
 void DeviceManager::message_arrived(mqtt::const_message_ptr msg) {
-  QString topic{QString::fromStdString(msg->get_topic())};
-  QByteArray payload{QByteArray::fromStdString(msg->get_payload_str())};
-
-  // for the most part I expect that everything will be primarily single JSON
-  // objects for now this is crude but it works
-  // TODO: improve this by making it so that we have a nice little detector for
-  // array vs json values.
-  if (topic.contains("zigbee2mqtt/bridge") && !topic.contains("devices")) {
-    return;
+  QString topic = QString::fromStdString(msg->get_topic());
+  QByteArray payload_bytes = QByteArray::fromStdString(msg->get_payload_str());
+  
+  // We expect JSON payloads for all our devices/providers
+  QJsonDocument doc = QJsonDocument::fromJson(payload_bytes);
+  QJsonObject payload;
+  
+  if (doc.isObject()) {
+    payload = doc.object();
+  } else if (doc.isArray()) {
+    // Some messages (like bridge/devices) might be arrays, wrap them or let providers handle
+    payload["devices"] = doc.array();
   }
 
-  if (topic.contains("bridge/devices")) {
-    QJsonArray payload_json_arr = QJsonDocument::fromJson(payload).array();
-    QMetaObject::invokeMethod(
-        this, [this, payload_json_arr]() { add_new_device(payload_json_arr); });
-    return;
+  // Broadcast to all providers
+  for (auto& provider : m_providers) {
+    if (provider) {
+        provider->handle_message(topic, payload);
+    }
   }
-
-  QJsonObject payload_json{QJsonDocument::fromJson(payload).object()};
-
-  DeviceManager::handle_message(topic, payload_json);
-};
+}
 
 void DeviceManager::connect_to_broker() {
   try {
@@ -134,13 +89,21 @@ void DeviceManager::connect_to_broker() {
                                      .finalize();
 
     m_client.connect(opts)->wait();
-    m_client.subscribe("zigbee2mqtt/#", 1);
-    std::cout << "Requesting device list..." << '\n';
-    m_client.publish("zigbee2mqtt/bridge/devices", "", 1, false)->wait();
+    
+    // Subscribe to all topics so providers can filter what they need
+    m_client.subscribe("#", 1);
+    
+    std::cout << "Connected and Subscribed to all topics" << "\n";
 
-    std::cout << "Connected and Subbed " << "\n";
+    // Notify all providers that we are connected so they can perform discovery/polling
+    for (auto& provider : m_providers) {
+        if (provider) {
+            provider->on_connected();
+        }
+    }
+
   } catch (const mqtt::exception &exc) {
-    std::cerr << exc.get_error_str() << "\n";
+    std::cerr << "MQTT Exception: " << exc.get_error_str() << "\n";
   }
 }
 
