@@ -11,7 +11,7 @@
 template <typename T>
 concept MqttProvider = requires(T p) {
   { p.mqtt_client() } -> std::same_as<mqtt::async_client*>;
-  { p.mqtt_topic_prefix() } -> std::same_as<QString>;
+  { p.mqtt_topic_prefix() } -> std::same_as<const QString&>;
 };
 
 /**
@@ -38,9 +38,9 @@ public:
 
   /**
    * @brief Access the stored MQTT topic prefix.
-   * @returns The QString topic prefix.
+   * @returns a const reference to the topic prefix.
    */
-  [[nodiscard]] QString mqtt_topic_prefix() const { return topic_prefix; }
+  [[nodiscard]] const QString& mqtt_topic_prefix() const { return topic_prefix; }
 
   protected:
     mqtt::async_client &client;
