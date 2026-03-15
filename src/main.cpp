@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
 
     return QApplication::exec();
   } catch (const std::exception &e) {
-    std::cerr << "[ERROR] Startup failed" << e.what() << '\n';
+    std::cerr << "[ERROR] Startup failed: " << e.what() << '\n';
     return 1;
   }
 }

@@ -4,6 +4,8 @@
 #include <QObject>
 #include <QList>
 #include <QJsonObject>
+#include <QHash>
+#include <QString>
 #include <mqtt/async_client.h>
 
 #include "smart_device.h"
