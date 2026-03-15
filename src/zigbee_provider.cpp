@@ -4,6 +4,7 @@
 #include <QJsonDocument>
 #include <QObject>
 #include <QSet>
+#include <QStringList>
 
 /**
  * @brief Create a Zigbee provider bound to an MQTT client and the
@@ -24,11 +25,11 @@ void ZigbeeProvider::handle_message(
   }
 
   const QString rel_topic = topic.mid(mqtt_topic_prefix().length());
+  const auto segments = rel_topic.split('/', Qt::SkipEmptyParts);
 
-  if (rel_topic.endsWith("/set")) {
+  if (!segments.isEmpty() && segments.last() == "set") {
     return;
   }
-
   const QJsonDocument doc = QJsonDocument::fromJson(payload);
   if (doc.isNull()) {
     return;
