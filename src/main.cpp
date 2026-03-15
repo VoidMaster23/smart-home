@@ -5,7 +5,6 @@
 #include <iostream>
 
 #include <QApplication>
-#include <QDir>
 #include <QFile>
 #include <QFileInfo>
 
@@ -37,7 +36,7 @@ int main(int argc, char *argv[]) {
 
     return QApplication::exec();
   } catch (const std::exception &e) {
-    std::cerr << e.what();
+    std::cerr << "[ERROR] Startup failed" << e.what() << '\n';
     return 1;
   }
 }
