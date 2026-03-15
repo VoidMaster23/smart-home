@@ -42,8 +42,8 @@ void ZigbeeProvider::handle_message(
       devices = doc.object().value("devices").toArray();
     }
 
+    process_discovery(devices);
     if (!devices.isEmpty()) {
-      process_discovery(devices);
       poll_all_devices();
     }
     return;
