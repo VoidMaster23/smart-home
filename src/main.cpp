@@ -1,5 +1,6 @@
 #include "device_manager.h"
 #include "main_window.h"
+#include "zigbee_provider.h"
 
 #include <iostream>
 
@@ -11,6 +12,9 @@
 int main(int argc, char *argv[]) {
   QApplication app(argc, argv);
   DeviceManager manager;
+  
+  auto* zigbee = new ZigbeeProvider(manager.mqtt_client(), &manager);
+  manager.register_provider(zigbee);
 
   QFile file(style_path);
   if(file.open(QFile::ReadOnly | QFile::Text)) {

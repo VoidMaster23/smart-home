@@ -6,19 +6,56 @@
 #include <QString>
 #include <utility>
 
-SmartDevice::SmartDevice(QString id, QString name, QString model,
+/**
+ * @brief Construct a SmartDevice with identifying and descriptive properties.
+ *
+ * Initializes a SmartDevice's id, name, model, device type, and QObject parent; computes the device's display name from the provided name and initializes its state to false.
+ *
+ * @param id Unique device identifier (e.g., IEEE address).
+ * @param name Human-readable device name.
+ * @param model Device model identifier.
+ * @param type DeviceType enum value describing the device category.
+ * @param parent Optional QObject parent for ownership. 
+ */
+SmartDevice::SmartDevice(QString id, QString name, QString model, // NOLINT(bugprone-easily-swappable-parameters)
                          DeviceType type, QObject *parent)
-    : QObject(parent), m_friendly_name(std::move(name)),
-      m_model_id(std::move(model)), m_ieee_address(std::move(id)), type(type),
-      m_state(false) {
-  m_display_name = StringUtils::format_for_display(m_friendly_name);
-}
+    : QObject(parent), m_name(std::move(name)), m_model(std::move(model)),
+      m_id(std::move(id)),
+      m_display_name(StringUtils::format_for_display(m_name)), m_type(type),
+      m_state(false) {}
 
-QString SmartDevice::friendly_name() const { return this->m_friendly_name; };
+/**
+ * @brief Retrieve the device's configured name.
+ *
+ * @return QString The device name.
+ */
+QString SmartDevice::name() const { return this->m_name; }
 
-QString SmartDevice::model_id() const { return this->m_model_id; }
-QString SmartDevice::ieee_address() const { return this->m_ieee_address; }
-DeviceType SmartDevice::device_type() const { return this->type; }
+/**
+ * @brief Get the device model identifier.
+ *
+ * @return QString The device model identifier.
+ */
+QString SmartDevice::model() const { return this->m_model; }
+/**
+ * @brief Retrieves the device's unique identifier (IEEE address).
+ *
+ * @return QString The device identifier.
+ */
+QString SmartDevice::id() const { return this->m_id; }
+/**
+ * @brief Retrieve the device's type.
+ *
+ * @return DeviceType The enum value representing this device's type.
+ */
+DeviceType SmartDevice::device_type() const { return this->m_type; }
+/**
+ * @brief Human-friendly display name for the device.
+ *
+ * The display name is computed from the device name during construction (formatted for display).
+ *
+ * @return QString The formatted display name used for presentation.
+ */
 QString SmartDevice::display_name() const { return this->m_display_name; }
 
 bool SmartDevice::state() const { return this->m_state; }
@@ -32,15 +69,23 @@ void SmartDevice::update_state(bool state) {
   emit this->state_changed(m_state);
 }
 
+/**
+ * @brief Set the device's on/off state and request a command when the state changes.
+ *
+ * Updates the device state only if the provided state differs from the current state,
+ * and emits the request_command signal with a QJsonObject containing the key
+ * "state" mapped to a boolean value.
+ *
+ * @param state `true` to set the device to on, `false` to set it to off.
+ */
 void SmartDevice::set_state(bool state) {
   if (state == m_state) {
     return;
   }
 
   update_state(state);
-  QString topic = "zigbee2mqtt/" + friendly_name() + "/set";
-
-  QString state_str = state ? "ON" : "OFF";
-  QString payload = QString(R"({"state": "%1"})").arg(state_str);
-  emit send_command(topic, payload);
+  
+  QJsonObject command;
+  command["state"] = state;
+  emit request_command(command);
 }

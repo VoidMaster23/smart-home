@@ -40,9 +40,14 @@ void SmartLightWidget::update_slider_label_pos() {
   label->move(x, y);
 }
 
-SmartLightWidget::SmartLightWidget(const QPointer<SmartLight> &device,
-                                   const QPointer<QWidget> &parent)
-    : QWidget(parent.data()), m_light_device(device) {
+SmartLightWidget::SmartLightWidget(
+    const QPointer<SmartLight> &device,
+    const QPointer<QWidget>
+        &parent) // NOLINT(bugprone-easily-swappable-parameters)
+    : QWidget(parent.data()), m_light_device(device), m_name_label(nullptr),
+      m_brightness_slider(nullptr), m_toggle_button(nullptr),
+      btn_reduce_brightness(nullptr), btn_increase_brightness(nullptr),
+      btn_settings(nullptr) {
 
   if (device.isNull()) {
     return;
@@ -102,7 +107,7 @@ SmartLightWidget::SmartLightWidget(const QPointer<SmartLight> &device,
   m_toggle_button = new QPushButton(this); // NOLINT
   m_toggle_button->setCheckable(true);
   m_toggle_button->setFixedSize(50, 50);
-  auto device_state = device->state();
+  const auto device_state = device->state();
   m_toggle_button->setChecked(device_state);
   m_toggle_button->setText(device_state ? "ON" : "OFF");
 
@@ -127,12 +132,13 @@ SmartLightWidget::SmartLightWidget(const QPointer<SmartLight> &device,
   this->setAttribute(Qt::WA_StyledBackground, true);
 }
 
-void SmartLightWidget::resizeEvent(QResizeEvent *event) {
+void SmartLightWidget::resizeEvent(
+    QResizeEvent *event) { // NOLINT(readability-identifier-naming)
   QWidget::resizeEvent(event);
   this->update_slider_label_pos();
 }
 
-void SmartLightWidget::setup_connections() {
+void SmartLightWidget::setup_connections() { // NOLINT(readability-convert-member-functions-to-static)
   if (m_light_device.isNull()) {
     return;
   }
@@ -197,7 +203,7 @@ void SmartLightWidget::setup_connections() {
     auto *dialog =                                                    // NOLINT
         new SmartLightSettingsDialog(m_light_device, this->window()); // NOLINT
 
-    connect(dialog, &QDialog::finished, this, [this](int result) {
+    connect(dialog, &QDialog::finished, this, [](int result) {
       if (result == QDialog::Accepted) {
         // Update logic goes here
       }

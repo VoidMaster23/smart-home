@@ -52,17 +52,17 @@ std::optional<ColorTempRange> get_color_temp_range(const QJsonObject &data) {
   }
 
   const auto features_object = features_iterator->toObject();
-  int min = features_object["value_min"].toInt();
-  int max = features_object["value_max"].toInt();
-  int neutral = min + ((max - min) / 2);
+  const int min = features_object["value_min"].toInt();
+  const int max = features_object["value_max"].toInt();
+  const int neutral = min + ((max - min) / 2);
   return ColorTempRange{.min = min, .max = max, .neutral = neutral};
 }
 
 SmartLightParams parse_light_params(const QJsonObject &data) {
-  auto friendly_name = data["friendly_name"].toString();
-  auto ieee_address = data["ieee_address"].toString();
-  auto model_id = data["model_id"].toString();
-  auto color_temp_range = get_color_temp_range(data).value_or(ColorTempRange{});
+  const auto friendly_name = data["friendly_name"].toString();
+  const auto ieee_address = data["ieee_address"].toString();
+  const auto model_id = data["model_id"].toString();
+  const auto color_temp_range = get_color_temp_range(data).value_or(ColorTempRange{});
 
   return SmartLightParams{
       .id = ieee_address,

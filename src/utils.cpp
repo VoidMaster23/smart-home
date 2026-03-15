@@ -31,12 +31,12 @@ void WidgetUtils::center_in_window(const QPointer<QWidget> &widget) {
   widget->adjustSize();
 
   // Use the content rectangle to avoid title-bar confusion
-  QRect parentArea = parent->rect();
-  QRect childRect = widget->rect();
+  const QRect parent_area = parent->rect();
+  const QRect child_rect = widget->rect();
 
   // The math that never fails if dimensions are correct
-  int x = (parentArea.width() - childRect.width()) / 2;
-  int y = (parentArea.height() - childRect.height()) / 2;
+  const int x = (parent_area.width() - child_rect.width()) / 2;
+  const int y = (parent_area.height() - child_rect.height()) / 2;
 
   widget->move(x, y);
 }
