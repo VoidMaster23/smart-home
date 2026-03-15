@@ -7,9 +7,17 @@
 #include <cstdlib>
 #include <iostream>
 #include <mqtt/async_client.h>
+#include <stdexcept>
 #include <string>
 
-const std::string mqtt_address{std::string(std::getenv("MQTT_ADDRESS"))}; // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+static std::string get_mqtt_address() {
+  const char* address = std::getenv("MQTT_ADDRESS");
+  if(address == nullptr) {
+    throw std::runtime_error("MQTT address has not been set. Please set this as an environment variable and try again");
+  }
+
+  return address;
+};
 
 /**
  * @brief Constructs a DeviceManager and initializes MQTT integration.
@@ -19,7 +27,7 @@ const std::string mqtt_address{std::string(std::getenv("MQTT_ADDRESS"))}; // NOL
  * @param parent QObject ownership parent.
  */
 DeviceManager::DeviceManager(QObject *parent)
-    : QObject(parent), m_client(mqtt_address) {
+    : QObject(parent), m_client(get_mqtt_address()) {
   try {
     m_client.set_callback(*this);
   } catch (...) {

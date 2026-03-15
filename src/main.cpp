@@ -7,29 +7,36 @@
 #include <QApplication>
 #include <QFile>
 #include <QFileInfo>
-#include <QDir>
+
+#include <exception>
 
 int main(int argc, char *argv[]) {
-  QApplication app(argc, argv);
-  DeviceManager manager;
-  
-  auto* zigbee = new ZigbeeProvider(manager.mqtt_client(), &manager);
-  manager.register_provider(zigbee);
+  try {
+    QApplication app(argc, argv);
+    DeviceManager manager;
 
-  QFile file(style_path);
-  if(file.open(QFile::ReadOnly | QFile::Text)) {
-    QTextStream stream(&file);
-    app.setStyleSheet(stream.readAll());
-    file.close();
+    auto *zigbee = new ZigbeeProvider(manager.mqtt_client(), // NOLINT
+                                      &manager);             // NOLINT
+    manager.register_provider(zigbee);
+
+    QFile file(style_path);
+    if (file.open(QFile::ReadOnly | QFile::Text)) {
+      QTextStream stream(&file);
+      app.setStyleSheet(stream.readAll());
+      file.close();
+    }
+
+    MainWindow window(&manager);
+
+    window.showFullScreen();
+
+    manager.connect_to_broker();
+
+    std::cout << "[SUCCESS] Qt App Initialized. Check your screen!" << '\n';
+
+    return QApplication::exec();
+  } catch (const std::exception &e) {
+    std::cerr << "[ERROR] Startup failed" << e.what() << '\n';
+    return 1;
   }
-
-  MainWindow window(&manager);
-
-  window.showFullScreen();
-
-  manager.connect_to_broker();
-
-  std::cout << "[SUCCESS] Qt App Initialized. Check your screen!" << '\n';
-
-  return QApplication::exec();
 }
