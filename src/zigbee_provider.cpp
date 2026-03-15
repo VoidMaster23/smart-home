@@ -40,10 +40,12 @@ void ZigbeeProvider::handle_message(
     if (doc.isArray()) {
       devices = doc.array();
       has_authoritative_snapshot = true;
-    } else if (doc.isObject() && doc.object().contains("devices") &&
-               doc.object().value("devices").isArray()) {
-      devices = doc.object().value("devices").toArray();
-      has_authoritative_snapshot = true;
+    } else if (doc.isObject()) {
+      const auto doc_obj = doc.object();
+      if (doc_obj.contains("devices") && doc_obj.value("devices").isArray()) {
+        devices = doc_obj.value("devices").toArray();
+        has_authoritative_snapshot = true;
+      }
     }
 
     if (!has_authoritative_snapshot) {
