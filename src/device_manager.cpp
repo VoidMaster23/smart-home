@@ -1,6 +1,7 @@
 #include "device_manager.h"
 #include "smart_device.h"
 
+#include <QDebug>
 #include <QList>
 #include <QObject>
 #include <QString>
@@ -11,9 +12,10 @@
 #include <string>
 
 static std::string get_mqtt_address() {
-  const char* address = std::getenv("MQTT_ADDRESS");
-  if(address == nullptr) {
-    throw std::runtime_error("MQTT address has not been set. Please set this as an environment variable and try again");
+  const char *address = std::getenv("MQTT_ADDRESS");
+  if (address == nullptr) {
+    throw std::runtime_error("MQTT address has not been set. Please set this "
+                             "as an environment variable and try again");
   }
 
   return address;
@@ -94,8 +96,8 @@ void DeviceManager::on_device_discovered(const QPointer<SmartDevice> &device) {
     std::cout << "Device " << device->name().toStdString()
               << " successfully discovered and added to manager" << "\n";
   } else {
-    std::cout << "Device " << device->name().toStdString() << " (ID: "
-              << id.toStdString() << ") updated in manager" << "\n";
+    std::cout << "Device " << device->name().toStdString()
+              << " (ID: " << id.toStdString() << ") updated in manager" << "\n";
   }
 }
 
@@ -158,23 +160,36 @@ void DeviceManager::connect_to_broker() {
 
     m_client.connect(opts)->wait();
 
-    // Subscribe to all topics so providers can filter what they need
-    m_client.subscribe("#", 1);
-
-    std::cout << "Connected and Subscribed to all topics" << "\n";
-
-    // Notify all providers that we are connected so they can perform
-    // discovery/polling
-    for (auto &provider : m_providers) {
-      if (provider != nullptr) {
-        provider->on_connected();
-      }
-    }
-
   } catch (const mqtt::exception &exc) {
-    std::cerr << "MQTT Exception: " << exc.get_error_str() << "\n";
+    qDebug() << "[ERROR] failed to establish MQTT connection"
+             << exc.get_error_str();
   }
 }
 
-void DeviceManager::connection_lost(const std::string & /*cause*/) {}
+void DeviceManager::notify_providers_connected() {
+  // Notify all providers that we are connected so they can perform
+  // discovery/polling
+  for (auto &provider : m_providers) {
+    if (provider != nullptr) {
+      provider->on_connected();
+    }
+  }
+}
+
+void DeviceManager::connected(const std::string &/*cause*/) {
+  try {
+    auto token = m_client.subscribe("#", 1);
+
+    qDebug() << "[LOG] Connected and subscribed to all topics";
+
+    notify_providers_connected();
+
+  } catch (const mqtt::exception &exc) {
+    qDebug() << "[ERROR] failed to subscribe to all topics";
+  }
+}
+
+void DeviceManager::connection_lost(const std::string &cause) {
+  qDebug() << "[LOG] connection lost: " << cause;
+}
 void DeviceManager::delivery_complete(mqtt::delivery_token_ptr /*token*/) {}
