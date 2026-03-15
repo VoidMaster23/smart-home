@@ -25,12 +25,11 @@ void ZigbeeProvider::handle_message(
   }
 
   const QString rel_topic = topic.mid(mqtt_topic_prefix().length());
-  const auto segments = rel_topic.split('/');
+  const auto segments = rel_topic.split('/', Qt::SkipEmptyParts);
 
-  if (segments.size() == 2 && segments.last() == "set") {
+  if (!segments.isEmpty() && segments.last() == "set") {
     return;
   }
-
   const QJsonDocument doc = QJsonDocument::fromJson(payload);
   if (doc.isNull()) {
     return;
