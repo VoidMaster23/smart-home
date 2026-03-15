@@ -36,10 +36,18 @@ void ZigbeeProvider::handle_message(
 
   if (rel_topic == "bridge/devices") {
     QJsonArray devices;
+    bool has_authoritative_snapshot = false;
     if (doc.isArray()) {
       devices = doc.array();
-    } else if (doc.isObject()) {
+      has_authoritative_snapshot = true;
+    } else if (doc.isObject() && doc.object().contains("devices") &&
+               doc.object().value("devices").isArray()) {
       devices = doc.object().value("devices").toArray();
+      has_authoritative_snapshot = true;
+    }
+
+    if (!has_authoritative_snapshot) {
+      return;
     }
 
     process_discovery(devices);
