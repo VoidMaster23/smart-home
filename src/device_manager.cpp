@@ -162,7 +162,7 @@ void DeviceManager::connect_to_broker() {
 
   } catch (const mqtt::exception &exc) {
     qDebug() << "[ERROR] failed to establish MQTT connection"
-             << exc.get_error_str();
+             << QString::fromStdString(exc.get_error_str());
   }
 }
 
@@ -171,25 +171,34 @@ void DeviceManager::notify_providers_connected() {
   // discovery/polling
   for (auto &provider : m_providers) {
     if (provider != nullptr) {
-      provider->on_connected();
+      const QPointer<DeviceProvider> &thread_safe_provider = provider;
+      QMetaObject::invokeMethod(
+          provider,
+          [thread_safe_provider]() {
+            if (thread_safe_provider != nullptr) {
+              thread_safe_provider->on_connected();
+            }
+          },
+          Qt::QueuedConnection);
     }
   }
 }
 
-void DeviceManager::connected(const std::string &/*cause*/) {
+void DeviceManager::connected(const std::string & /*cause*/) {
   try {
-    auto token = m_client.subscribe("#", 1);
+    m_client.subscribe("#", 1);
 
     qDebug() << "[LOG] Connected and subscribed to all topics";
 
     notify_providers_connected();
 
   } catch (const mqtt::exception &exc) {
-    qDebug() << "[ERROR] failed to subscribe to all topics";
+    qDebug() << "[ERROR] failed to subscribe to all topics"
+             << QString::fromStdString(exc.get_error_str());
   }
 }
 
 void DeviceManager::connection_lost(const std::string &cause) {
-  qDebug() << "[LOG] connection lost: " << cause;
+  qDebug() << "[LOG] connection lost: " << QString::fromStdString(cause);
 }
 void DeviceManager::delivery_complete(mqtt::delivery_token_ptr /*token*/) {}
