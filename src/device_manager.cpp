@@ -29,7 +29,7 @@ static std::string get_mqtt_address() {
  * @param parent QObject ownership parent.
  */
 DeviceManager::DeviceManager(QObject *parent)
-    : QObject(parent), m_client(get_mqtt_address()) {
+    : QObject(parent), m_client(get_mqtt_address(), "client") {
   try {
     m_client.set_callback(*this);
   } catch (...) {
