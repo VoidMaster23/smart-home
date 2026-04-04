@@ -112,7 +112,7 @@ void ZigbeeProvider::register_new_devices(const QJsonArray &devices) {
       continue;
     }
 
-    const QPointer<SmartDevice> device = DeviceFactory::create_device(load);
+    const QPointer<SmartDevice> device = DeviceFactory::create_device(load, this);
     if (device != nullptr) {
       setup_new_device(device);
     }
