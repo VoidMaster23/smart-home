@@ -108,7 +108,7 @@ private slots:
    * @brief Internal slot to handle device removal from providers.
    * @param id Unique identifier of the removed device.
    */
-  void on_device_removed(const QString &id);
+  void on_device_removed(QStringView id);
 
 private:
   QList<QPointer<DeviceProvider>> m_providers;
