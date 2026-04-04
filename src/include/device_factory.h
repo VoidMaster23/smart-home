@@ -6,6 +6,6 @@
 #include <QPointer>
 
 namespace DeviceFactory {
-    QPointer<SmartDevice> create_device(QJsonObject const &data, QObject *parent=nullptr);
+    [[nodiscard]] QPointer<SmartDevice> create_device(QJsonObject const &data, QObject *parent=nullptr);
 
 }

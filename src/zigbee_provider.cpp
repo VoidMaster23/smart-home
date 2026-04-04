@@ -186,10 +186,12 @@ void ZigbeeProvider::reconcile_missing_devices(
 void ZigbeeProvider::route_update(
     QStringView friendly_name, // NOLINT(bugprone-easily-swappable-parameters)
     const QJsonObject &payload) {
-  if (!m_name_to_id.contains(friendly_name.toString())) {
+  const QString name = friendly_name.toString();
+  auto it = m_name_to_id.constFind(name);
+  if (it == m_name_to_id.constEnd()) {
     return;
   }
-  const QString id = m_name_to_id.value(friendly_name.toString());
+  const QString id = it.value();
   const QPointer<SmartDevice> device = m_devices.value(id);
 
   if (device != nullptr) {

@@ -29,11 +29,11 @@ static std::string get_mqtt_address() {
  * @param parent QObject ownership parent.
  */
 DeviceManager::DeviceManager(QObject *parent)
-    : QObject(parent), m_client(get_mqtt_address(), "client") {
+    : QObject(parent), m_client(get_mqtt_address(), std::getenv("MQTT_CLIENT_ID") ? std::getenv("MQTT_CLIENT_ID") : "smart-home-controller") {
   try {
     m_client.set_callback(*this);
-  } catch (...) {
-    qDebug() << "[ERROR] Could not connect to the MQTT broker";
+  } catch (const std::exception &e) {
+    qDebug() << "[ERROR] failed to set MQTT client callback:" << e.what();
   }
 }
 
@@ -66,7 +66,7 @@ QList<QPointer<SmartDevice>> DeviceManager::devices() const {
  * no device with that id is managed.
  */
 QPointer<SmartDevice> DeviceManager::get_device(QStringView id) const {
-  return m_devices.value(id, nullptr);
+  return m_devices.value(id.toString(), nullptr);
 }
 
 /**
@@ -110,7 +110,7 @@ void DeviceManager::on_device_discovered(const QPointer<SmartDevice> &device) {
  * @param id Identifier of the device to remove; no action is taken if no device
  * matches.
  */
-void DeviceManager::on_device_removed(QStringView id) {
+void DeviceManager::on_device_removed(const QString &id) {
   if (m_devices.remove(id) > 0) {
     emit devices_changed();
     qDebug() << "[INFO] Device " << id << " removed from manager";

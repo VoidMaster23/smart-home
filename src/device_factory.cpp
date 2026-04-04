@@ -11,7 +11,9 @@ QPointer<SmartDevice> create_device(QJsonObject const &data, QObject *parent=nul
 
   if (ZigbeeUtils::is_zigbee_device(data)) {
       if(ZigbeeUtils::is_light(data)) {
-        return {new ZigbeeLight(ZigbeeUtils::parse_light_params(data), parent)};
+        auto params = ZigbeeUtils::parse_light_params(data);
+        params.parent = parent;
+        return {new ZigbeeLight(params)};
       }
   }
 
