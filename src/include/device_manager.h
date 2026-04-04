@@ -6,6 +6,7 @@
 #include <QObject>
 #include <QPointer>
 #include <QString>
+#include <QStringView>
 #include <mqtt/async_client.h>
 
 #include "device_provider.h"
@@ -53,7 +54,7 @@ public:
    * @param id Unique identifier of the device.
    * @returns QPointer to the SmartDevice if found, or null otherwise.
    */
-  [[nodiscard]] QPointer<SmartDevice> get_device(const QString &id) const;
+  [[nodiscard]] QPointer<SmartDevice> get_device(QStringView id) const;
 
   /**
    * @brief Called when MQTT connection is lost.

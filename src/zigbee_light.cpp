@@ -14,7 +14,7 @@ ZigbeeLight::ZigbeeLight(SmartLightParams params)
  * @param brightness Desired brightness level to apply.
  */
 void ZigbeeLight::set_brightness(const int brightness) {
-  if (brightness == this->m_brightness) {
+  if (brightness == m_brightness) {
     return;
   }
 
@@ -35,7 +35,7 @@ void ZigbeeLight::set_brightness(const int brightness) {
  * @param color_temp New color temperature value.
  */
 void ZigbeeLight::set_color_temp(const int color_temp) {
-  if (color_temp == this->m_color_temp) {
+  if (color_temp == m_color_temp) {
     return;
   }
 

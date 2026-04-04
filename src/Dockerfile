@@ -27,7 +27,7 @@ RUN cd /usr/src/googletest \
     && ldconfig
 
 # Build Paho MQTT C++
-RUN git clone https://github.com/eclipse/paho.mqtt.cpp.git \
+RUN git clone -b  v1.4.1 https://github.com/eclipse/paho.mqtt.cpp.git \
     && cd paho.mqtt.cpp \
     && mkdir build && cd build \
     && cmake .. -DPAHO_BUILD_DOCUMENTATION=FALSE -DPAHO_BUILD_SAMPLES=FALSE \
@@ -61,7 +61,6 @@ RUN apt-get update && apt-get install -y \
     libpaho-mqtt-dev \
     # 2. Qt6 Core Libraries
     libqt6quick6 \
-    libqt6widgets6 \
     libqt6gui6 \
     libqt6core6 \
     # 3. Qt6 QML Modules

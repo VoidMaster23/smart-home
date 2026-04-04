@@ -5,8 +5,8 @@
 #include <QList>
 #include <QObject>
 #include <QString>
+#include <QStringView>
 #include <cstdlib>
-#include <iostream>
 #include <mqtt/async_client.h>
 #include <stdexcept>
 #include <string>
@@ -29,11 +29,11 @@ static std::string get_mqtt_address() {
  * @param parent QObject ownership parent.
  */
 DeviceManager::DeviceManager(QObject *parent)
-    : QObject(parent), m_client(get_mqtt_address()) {
+    : QObject(parent), m_client(get_mqtt_address(), std::getenv("MQTT_CLIENT_ID") ? std::getenv("MQTT_CLIENT_ID") : "smart-home-controller") {
   try {
     m_client.set_callback(*this);
-  } catch (...) {
-    std::cerr << "Could not connect to the MQTT broker" << '\n';
+  } catch (const std::exception &e) {
+    qDebug() << "[ERROR] failed to set MQTT client callback:" << e.what();
   }
 }
 
@@ -65,8 +65,8 @@ QList<QPointer<SmartDevice>> DeviceManager::devices() const {
  * @return QPointer<SmartDevice> Pointer to the matching device, or `nullptr` if
  * no device with that id is managed.
  */
-QPointer<SmartDevice> DeviceManager::get_device(const QString &id) const {
-  return m_devices.value(id, nullptr);
+QPointer<SmartDevice> DeviceManager::get_device(QStringView id) const {
+  return m_devices.value(id.toString(), nullptr);
 }
 
 /**
@@ -93,11 +93,11 @@ void DeviceManager::on_device_discovered(const QPointer<SmartDevice> &device) {
 
   if (is_new) {
     emit device_discovered(device.get());
-    std::cout << "Device " << device->name().toStdString()
-              << " successfully discovered and added to manager" << "\n";
+    qDebug() << "[INFO] Device " << device->name()
+              << " successfully discovered and added to manager";
   } else {
-    std::cout << "Device " << device->name().toStdString()
-              << " (ID: " << id.toStdString() << ") updated in manager" << "\n";
+    qDebug() << "[INFO] Device " << device->name()
+              << " (ID: " << id << ") updated in manager";
   }
 }
 
@@ -113,8 +113,7 @@ void DeviceManager::on_device_discovered(const QPointer<SmartDevice> &device) {
 void DeviceManager::on_device_removed(const QString &id) {
   if (m_devices.remove(id) > 0) {
     emit devices_changed();
-    std::cout << "Device " << id.toStdString() << " removed from manager"
-              << "\n";
+    qDebug() << "[INFO] Device " << id << " removed from manager";
   }
 }
 

@@ -5,6 +5,7 @@
 #include <QObject>
 #include <QSet>
 #include <QStringList>
+#include <QStringView>
 
 /**
  * @brief Create a Zigbee provider bound to an MQTT client and the
@@ -18,13 +19,13 @@ ZigbeeProvider::ZigbeeProvider(mqtt::async_client &client, QObject *parent)
  * handler.
  */
 void ZigbeeProvider::handle_message(
-    const QString &topic, // NOLINT(bugprone-easily-swappable-parameters)
+    QStringView topic, // NOLINT(bugprone-easily-swappable-parameters)
     const QByteArray &payload) {
   if (!topic.startsWith(mqtt_topic_prefix())) {
     return;
   }
 
-  const QString rel_topic = topic.mid(mqtt_topic_prefix().length());
+  const QString rel_topic = topic.toString().mid(mqtt_topic_prefix().length());
   const auto segments = rel_topic.split('/', Qt::SkipEmptyParts);
 
   if (!segments.isEmpty() && segments.last() == "set") {
@@ -111,7 +112,7 @@ void ZigbeeProvider::register_new_devices(const QJsonArray &devices) {
       continue;
     }
 
-    const QPointer<SmartDevice> device = DeviceFactory::create_device(load);
+    const QPointer<SmartDevice> device = DeviceFactory::create_device(load, this);
     if (device != nullptr) {
       setup_new_device(device);
     }
@@ -183,13 +184,14 @@ void ZigbeeProvider::reconcile_missing_devices(
  * name.
  */
 void ZigbeeProvider::route_update(
-    const QString
-        &friendly_name, // NOLINT(bugprone-easily-swappable-parameters)
+    QStringView friendly_name, // NOLINT(bugprone-easily-swappable-parameters)
     const QJsonObject &payload) {
-  if (!m_name_to_id.contains(friendly_name)) {
+  const QString name = friendly_name.toString();
+  auto it = m_name_to_id.constFind(name);
+  if (it == m_name_to_id.constEnd()) {
     return;
   }
-  const QString id = m_name_to_id.value(friendly_name);
+  const QString id = it.value();
   const QPointer<SmartDevice> device = m_devices.value(id);
 
   if (device != nullptr) {

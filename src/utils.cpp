@@ -1,42 +1,15 @@
 #include "utils.h"
-#include <QString>
+#include <QStringView>
 #include <QStringList>
-#include <QWidget>
+#include <algorithm>
+#include <ranges>
 
-#include <QGuiApplication>
-#include <QPointer>
-#include <QScreen>
+[[nodiscard]] QString StringUtils::format_for_display(QStringView string) {
+  const auto words_list{string.split('_', Qt::SkipEmptyParts)};
+  QStringList formatted;
+  std::ranges::transform(words_list, std::back_inserter(formatted), [](const auto &word) {
+    return word.at(0).toUpper() + word.mid(1).toString();
+  });
 
-QString StringUtils::format_for_display(const QString &string) {
-  QStringList words_list{string.split('_', Qt::SkipEmptyParts)};
-
-  for (auto &word : words_list) {
-    word = word.at(0).toUpper() + word.mid(1);
-  }
-
-  return words_list.join(' ');
-}
-
-void WidgetUtils::center_in_window(const QPointer<QWidget> &widget) {
-  if (widget.isNull()) {
-    return;
-  }
-
-  auto *parent = widget->parentWidget();
-  if (parent == nullptr) {
-    return;
-  }
-
-  widget->ensurePolished();
-  widget->adjustSize();
-
-  // Use the content rectangle to avoid title-bar confusion
-  const QRect parent_area = parent->rect();
-  const QRect child_rect = widget->rect();
-
-  // The math that never fails if dimensions are correct
-  const int x = (parent_area.width() - child_rect.width()) / 2;
-  const int y = (parent_area.height() - child_rect.height()) / 2;
-
-  widget->move(x, y);
+  return formatted.join(' ');
 }
