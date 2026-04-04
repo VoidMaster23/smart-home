@@ -1,12 +1,12 @@
 #pragma once
 
-#include <QString>
+#include <QStringView>
 #include <QWidget>
 #include <QPointer>
 
 namespace StringUtils {
 
-QString format_for_display(const QString &string);
+QString format_for_display(QStringView string);
 
 }
 

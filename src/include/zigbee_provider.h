@@ -4,6 +4,8 @@
 #include "mqtt_capability.h"
 #include <QJsonArray>
 #include <QJsonObject>
+#include <QString>
+#include <QStringView>
 #include <QMap>
 #include <QSet>
 
@@ -28,7 +30,7 @@ public:
    * @param topic Topic of the message.
    * @param payload Raw payload bytes.
    */
-  void handle_message(const QString &topic, const QByteArray &payload) override;
+  void handle_message(QStringView topic, const QByteArray &payload) override;
 
   /**
    * @brief Poll all known devices for their current state.
@@ -54,7 +56,7 @@ private:
    * @param friendly_name Friendly name of the device.
    * @param payload JSON object containing the update.
    */
-  void route_update(const QString &friendly_name, const QJsonObject &payload);
+  void route_update(QStringView friendly_name, const QJsonObject &payload);
 
   /**
    * @brief Extract IEEE addresses from a discovery payload.
@@ -81,7 +83,6 @@ private:
    */
   void reconcile_missing_devices(const QSet<QString> &snapshot_ids);
 
-protected:
   /**
    * @brief Mapping from device friendly names to their unique IEEE addresses.
    */

@@ -5,6 +5,7 @@
 #include <QList>
 #include <QObject>
 #include <QString>
+#include <QStringView>
 #include <cstdlib>
 #include <mqtt/async_client.h>
 #include <stdexcept>
@@ -64,7 +65,7 @@ QList<QPointer<SmartDevice>> DeviceManager::devices() const {
  * @return QPointer<SmartDevice> Pointer to the matching device, or `nullptr` if
  * no device with that id is managed.
  */
-QPointer<SmartDevice> DeviceManager::get_device(const QString &id) const {
+QPointer<SmartDevice> DeviceManager::get_device(QStringView id) const {
   return m_devices.value(id, nullptr);
 }
 
@@ -109,10 +110,10 @@ void DeviceManager::on_device_discovered(const QPointer<SmartDevice> &device) {
  * @param id Identifier of the device to remove; no action is taken if no device
  * matches.
  */
-void DeviceManager::on_device_removed(const QString &id) {
+void DeviceManager::on_device_removed(QStringView id) {
   if (m_devices.remove(id) > 0) {
     emit devices_changed();
-    qDebug() << "[INFO] Device " << id.toStdString() << " removed from manager";
+    qDebug() << "[INFO] Device " << id << " removed from manager";
   }
 }
 

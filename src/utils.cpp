@@ -1,5 +1,5 @@
 #include "utils.h"
-#include <QString>
+#include <QStringView>
 #include <QStringList>
 #include <QWidget>
 
@@ -7,14 +7,14 @@
 #include <QPointer>
 #include <QScreen>
 
-QString StringUtils::format_for_display(const QString &string) {
-  QStringList words_list{string.split('_', Qt::SkipEmptyParts)};
-
-  for (auto &word : words_list) {
-    word = word.at(0).toUpper() + word.mid(1);
+QString StringUtils::format_for_display(QStringView string) {
+  const auto words_list{string.split('_', Qt::SkipEmptyParts)};
+  QStringList formatted;
+  for (const auto &word : words_list) {
+    formatted << word.at(0).toUpper() + word.mid(1).toString();
   }
 
-  return words_list.join(' ');
+  return formatted.join(' ');
 }
 
 void WidgetUtils::center_in_window(const QPointer<QWidget> &widget) {

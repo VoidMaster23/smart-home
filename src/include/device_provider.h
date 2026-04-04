@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QString>
+#include <QStringView>
 #include <QByteArray>
 #include <QPointer>
 #include <QMap>
@@ -48,7 +49,7 @@ class DeviceProvider: public QObject {
          * @param topic Topic or routing key for the message.
          * @param payload Raw byte array payload of the message.
          */
-        virtual void handle_message(const QString &topic, const QByteArray &payload) = 0;
+        virtual void handle_message(QStringView topic, const QByteArray &payload) = 0;
 
         /**
          * @brief Poll all known or discoverable devices to refresh state or discover new ones.
