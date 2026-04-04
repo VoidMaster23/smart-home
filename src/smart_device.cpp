@@ -29,26 +29,26 @@ SmartDevice::SmartDevice(QString id, QString name, QString model, // NOLINT(bugp
  *
  * @return QString The device name.
  */
-QString SmartDevice::name() const { return this->m_name; }
+QString SmartDevice::name() const { return m_name; }
 
 /**
  * @brief Get the device model identifier.
  *
  * @return QString The device model identifier.
  */
-QString SmartDevice::model() const { return this->m_model; }
+QString SmartDevice::model() const { return m_model; }
 /**
  * @brief Retrieves the device's unique identifier (IEEE address).
  *
  * @return QString The device identifier.
  */
-QString SmartDevice::id() const { return this->m_id; }
+QString SmartDevice::id() const { return m_id; }
 /**
  * @brief Retrieve the device's type.
  *
  * @return DeviceType The enum value representing this device's type.
  */
-DeviceType SmartDevice::device_type() const { return this->m_type; }
+DeviceType SmartDevice::device_type() const { return m_type; }
 /**
  * @brief Human-friendly display name for the device.
  *
@@ -56,9 +56,9 @@ DeviceType SmartDevice::device_type() const { return this->m_type; }
  *
  * @return QString The formatted display name used for presentation.
  */
-QString SmartDevice::display_name() const { return this->m_display_name; }
+QString SmartDevice::display_name() const { return m_display_name; }
 
-bool SmartDevice::state() const { return this->m_state; }
+bool SmartDevice::state() const { return m_state; }
 
 void SmartDevice::update_state(bool state) {
   if (state == m_state) {
@@ -66,7 +66,7 @@ void SmartDevice::update_state(bool state) {
   }
 
   m_state = state;
-  emit this->state_changed(m_state);
+  emit state_changed(m_state);
 }
 
 /**

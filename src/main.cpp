@@ -2,12 +2,11 @@
 #include "main_window.h"
 #include "zigbee_provider.h"
 
-#include <iostream>
 
 #include <QApplication>
 #include <QFile>
 #include <QFileInfo>
-
+#include <QDebug>
 #include <exception>
 
 int main(int argc, char *argv[]) {
@@ -32,11 +31,11 @@ int main(int argc, char *argv[]) {
 
     manager.connect_to_broker();
 
-    std::cout << "[SUCCESS] Qt App Initialized. Check your screen!" << '\n';
+    qDebug() << "[SUCCESS] Qt App Initialized. Check your screen";
 
     return QApplication::exec();
   } catch (const std::exception &e) {
-    std::cerr << "[ERROR] Startup failed: " << e.what() << '\n';
+    qCritical() << "[ERROR] Startup failed: " << e.what();
     return 1;
   }
 }

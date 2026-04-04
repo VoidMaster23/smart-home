@@ -6,7 +6,6 @@
 #include <QObject>
 #include <QString>
 #include <cstdlib>
-#include <iostream>
 #include <mqtt/async_client.h>
 #include <stdexcept>
 #include <string>
@@ -33,7 +32,7 @@ DeviceManager::DeviceManager(QObject *parent)
   try {
     m_client.set_callback(*this);
   } catch (...) {
-    std::cerr << "Could not connect to the MQTT broker" << '\n';
+    qDebug() << "[ERROR] Could not connect to the MQTT broker";
   }
 }
 
@@ -93,11 +92,11 @@ void DeviceManager::on_device_discovered(const QPointer<SmartDevice> &device) {
 
   if (is_new) {
     emit device_discovered(device.get());
-    std::cout << "Device " << device->name().toStdString()
-              << " successfully discovered and added to manager" << "\n";
+    qDebug() << "[INFO] Device " << device->name()
+              << " successfully discovered and added to manager";
   } else {
-    std::cout << "Device " << device->name().toStdString()
-              << " (ID: " << id.toStdString() << ") updated in manager" << "\n";
+    qDebug() << "[INFO] Device " << device->name()
+              << " (ID: " << id << ") updated in manager";
   }
 }
 
@@ -113,8 +112,7 @@ void DeviceManager::on_device_discovered(const QPointer<SmartDevice> &device) {
 void DeviceManager::on_device_removed(const QString &id) {
   if (m_devices.remove(id) > 0) {
     emit devices_changed();
-    std::cout << "Device " << id.toStdString() << " removed from manager"
-              << "\n";
+    qDebug() << "[INFO] Device " << id.toStdString() << " removed from manager";
   }
 }
 
