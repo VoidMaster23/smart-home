@@ -110,7 +110,7 @@ void DeviceManager::on_device_discovered(const QPointer<SmartDevice> &device) {
  * @param id Identifier of the device to remove; no action is taken if no device
  * matches.
  */
-void DeviceManager::on_device_removed(QStringView id) {
+void DeviceManager::on_device_removed(const QString &id) {
   if (m_devices.remove(id) > 0) {
     emit devices_changed();
     qDebug() << "[INFO] Device " << id << " removed from manager";
