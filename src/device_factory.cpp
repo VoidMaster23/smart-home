@@ -1,3 +1,4 @@
+#include "device_factory.h"
 #include "smart_device.h"
 #include "zigbee_light.h"
 #include "zigbee_utils.h"
@@ -6,7 +7,7 @@
 
 namespace DeviceFactory {
 
-QPointer<SmartDevice> create_device(QJsonObject const &data, QObject *parent=nullptr) {
+QPointer<SmartDevice> create_device(QJsonObject const &data, QObject *parent) {
  
 
   if (ZigbeeUtils::is_zigbee_device(data)) {
