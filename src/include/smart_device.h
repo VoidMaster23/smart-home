@@ -3,6 +3,8 @@
 #include <QJsonObject>
 #include <QObject>
 #include <QString>
+#include <QtQml/qqmlregistration.h>
+#include <qqmlintegration.h>
 
 /**
  * @brief Enum representing the type of smart device.
@@ -14,6 +16,7 @@ enum class DeviceType { SmartLight };
  */
 class SmartDevice : public QObject {
   Q_OBJECT
+  QML_UNCREATABLE("Base Class cannot be instantiated")
   Q_PROPERTY(QString id READ id CONSTANT)
   Q_PROPERTY(QString name READ name NOTIFY name_changed)
   Q_PROPERTY(QString model READ model CONSTANT)

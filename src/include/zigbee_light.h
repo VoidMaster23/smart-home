@@ -1,5 +1,7 @@
 #pragma once
 #include "smart_light.h"
+#include <QtQml/qqmlregistration.h>
+#include <qqmlintegration.h>
 
 /**
  * @brief Represents a Zigbee smart light.
@@ -8,7 +10,7 @@
  */
 class ZigbeeLight: public SmartLight {
     Q_OBJECT
-
+    QML_ELEMENT
     public:
         /**
          * @brief Construct a ZigbeeLight.

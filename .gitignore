@@ -20,3 +20,7 @@ build/
 *_backup_*.yml
 *_backup_*.yaml
 *.old
+
+#ignore clangd cache files 
+*.idx
+.cache/clangd/index/*
