@@ -1,7 +1,8 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Window
 
-Window {
+ApplicationWindow {
     visibility: Window.FullScreen
     width: Screen.width
     height: Screen.height
@@ -21,6 +22,13 @@ Window {
             text: "Hello Docker!"
             color: "white"
             font.pixelSize: 24
+          }
         }
+
+    footer: TabBar {
+        id: navbar
+        TabButton {text: "Home"}
+        TabButton {text: "All Devices" }
+        TabButton  {text: "Rooms" }
     }
 }

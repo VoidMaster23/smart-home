@@ -64,6 +64,7 @@ RUN apt-get update && apt-get install -y \
     libqt6gui6 \
     libqt6core6 \
     # 3. Qt6 QML Modules
+    qml6-module-qtquick-window \
     qml6-module-qtquick \
     qml6-module-qtquick-controls \
     qml6-module-qtquick-layouts \

@@ -5,6 +5,8 @@
 #include <QObject>
 #include <QString>
 #include <QPointer>
+#include <QtQml/qqmlregistration.h>
+#include <qqmlintegration.h>
 
 /**
  * @brief Represents a range of color temperatures.
@@ -35,6 +37,7 @@ struct SmartLightParams {
  */
 class SmartLight : public SmartDevice {
   Q_OBJECT
+  QML_UNCREATABLE("Base Class cannot be instantiated")
   Q_PROPERTY(int brightness READ brightness WRITE set_brightness NOTIFY
                  brightness_changed)
   Q_PROPERTY(int color_temp READ color_temp WRITE set_color_temp NOTIFY
