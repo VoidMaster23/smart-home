@@ -1,70 +1,162 @@
-import { beforeEach, describe, expect, test, vi } from 'vitest';
+import { describe, expect, test, beforeEach } from 'vitest';
 
-import { parseLight } from './devices';
+import { isLightOnline, useDevicesStore } from './devices';
+import type { Light } from './types';
+import { mockDeviceConfigTopic } from './utils/mockData';
 
-// Real discovery payload from Kajplats_Room_Light (Z2M 2.7.1), exactly as received.
-const realPayload = `{"availability":[{"topic":"zigbee2mqtt/bridge/state","value_template":"{{ value_json.state }}"}],"brightness":true,"brightness_scale":254,"command_topic":"zigbee2mqtt/Kajplats_Room_Light/set","default_entity_id":"light.kajplats_room_light","device":{"hw_version":1,"identifiers":["zigbee2mqtt_0x00e07291ff75002e"],"manufacturer":"","model":"Automatically generated definition","model_id":"","name":"Kajplats_Room_Light","sw_version":"","via_device":"zigbee2mqtt_bridge_0x00124b0037e739d7"},"effect":true,"effect_list":["blink","breathe","okay","channel_change","finish_effect","stop_effect","colorloop","stop_colorloop"],"max_mireds":555,"min_mireds":153,"name":null,"object_id":"kajplats_room_light","origin":{"name":"Zigbee2MQTT","sw":"2.7.1","url":"https://www.zigbee2mqtt.io"},"schema":"json","state_topic":"zigbee2mqtt/Kajplats_Room_Light","supported_color_modes":["xy","color_temp"],"unique_id":"0x00e07291ff75002e_light_zigbee2mqtt"}`;
+const makeLight = (overrides: Partial<Light> = {}): Light => ({
+  availabilityTopics: ['zigbee2mqtt/bridge/state', 'zigbee2mqtt/Kajplats_Room_Light/availability'],
+  brightnessScale: 254,
+  colorModes: ['xy', 'color_temp'],
+  commandTopic: 'zigbee2mqtt/Kajplats_Room_Light/set',
+  configTopic: mockDeviceConfigTopic,
+  deviceId: 'zigbee2mqtt_0x00e07291ff75002e',
+  displayName: 'Kajplats_Room_Light',
+  id: '0x00e07291ff75002e_light_zigbee2mqtt',
+  maxMireds: 555,
+  minMireds: 153,
+  stateTopic: 'zigbee2mqtt/Kajplats_Room_Light',
+  supportsBrightness: true,
+  ...overrides,
+});
 
-const uniqueId = '0x00e07291ff75002e_light_zigbee2mqtt';
+describe('device store', () => {
+  const store = () => useDevicesStore.getState();
 
-const variant = (change: (config: Record<string, unknown>) => void): string => {
-    const config = JSON.parse(realPayload) as Record<string, unknown>;
-    change(config);
-    return JSON.stringify(config);
-};
+  beforeEach(() => {
+    useDevicesStore.setState({ availability: {}, connected: false, lights: {}, lightStates: {} });
+  });
 
-describe('parseLight', () => {
+  describe('setConnected', () => {
+    test('tracks the broker connection', () => {
+      store().setConnected(true);
+      expect(store().connected).toBe(true);
+      store().setConnected(false);
+      expect(store().connected).toBe(false);
+    });
+  });
+
+  describe('upsertLight', () => {
+    test('stores a light by id', () => {
+      const light = makeLight();
+      store().upsertLight(light);
+      expect(store().lights[light.id]).toEqual(light);
+    });
+
+    test('replaces a light with the same id', () => {
+      store().upsertLight(makeLight());
+      store().upsertLight(makeLight({ displayName: 'Renamed' }));
+      expect(Object.values(store().lights)).toHaveLength(1);
+      expect(store().lights[makeLight().id]?.displayName).toBe('Renamed');
+    });
+
+    test('keeps lights with different ids apart', () => {
+      store().upsertLight(makeLight());
+      store().upsertLight(makeLight({ id: 'other' }));
+      expect(Object.keys(store().lights)).toHaveLength(2);
+    });
+
+    test('does not touch light state', () => {
+      const light = makeLight();
+      store().upsertLight(light);
+      store().applyState(light, { state: 'ON' });
+      store().upsertLight(light);
+      expect(store().lightStates[light.id]).toEqual({ state: 'ON' });
+    });
+  });
+
+  describe('removeLight', () => {
+    test('removes the light with that config topic', () => {
+      const light = makeLight();
+      store().upsertLight(light);
+      store().removeLight(light.configTopic);
+      expect(store().lights).toEqual({});
+    });
+
+    test('ignores an unknown config topic', () => {
+      store().upsertLight(makeLight());
+      store().removeLight('homeassistant/light/unknown/light/config');
+      expect(Object.keys(store().lights)).toHaveLength(1);
+    });
+
+    test('removes the state of the removed light', () => {
+      const light = makeLight();
+      store().upsertLight(light);
+      store().applyState(light, { state: 'ON' });
+      store().removeLight(light.configTopic);
+      expect(store().lightStates).toEqual({});
+    });
+
+    test('leaves the store untouched for an unknown config topic', () => {
+      store().upsertLight(makeLight());
+      const before = store();
+      store().removeLight('homeassistant/light/unknown/light/config');
+      expect(store()).toBe(before);
+    });
+
+    test('removes the availability of the removed light', () => {
+      const light = makeLight();
+      store().upsertLight(light);
+      store().setAvailability(light, light.availabilityTopics[0]!, true);
+      store().removeLight(light.configTopic);
+      expect(store().availability).toEqual({});
+    });
+  });
+
+  describe('applyState', () => {
+    const light = makeLight();
+
     beforeEach(() => {
-        vi.spyOn(console, 'error').mockImplementation(() => { });
+      store().upsertLight(light);
     });
 
-    test('parses the real config', () => {
-        expect(parseLight(realPayload)).toEqual({
-            availabilityTopic: 'zigbee2mqtt/bridge/state',
-            brightnessScale: 254,
-            colorModes: ['xy', 'color_temp'],
-            commandTopic: 'zigbee2mqtt/Kajplats_Room_Light/set',
-            deviceId: 'zigbee2mqtt_0x00e07291ff75002e',
-            displayName: 'Kajplats_Room_Light',
-            id: uniqueId,
-            maxMireds: 555,
-            minMireds: 153,
-            stateTopic: 'zigbee2mqtt/Kajplats_Room_Light',
-            supportsBrightness: true,
-        });
+    test('stores the state under the light id', () => {
+      store().applyState(light, { brightness: 254, state: 'ON' });
+      expect(store().lightStates[light.id]).toEqual({ brightness: 254, state: 'ON' });
     });
 
-    test.each(['garbage', '{}', 'null'])('returns null for %j', (payload) => {
-        expect(parseLight(payload)).toBeNull();
+    test('merges partial updates into the existing state', () => {
+      store().applyState(light, { brightness: 254, state: 'ON' });
+      store().applyState(light, { brightness: 100 });
+      expect(store().lightStates[light.id]).toEqual({ brightness: 100, state: 'ON' });
+    });
+  });
+
+  describe('setAvailability', () => {
+    const light = makeLight();
+    const [bridge, device] = light.availabilityTopics;
+
+    test('stores availability per light and topic', () => {
+      store().setAvailability(light, bridge!, true);
+      expect(store().availability[light.id]).toEqual({ [bridge!]: true });
     });
 
-    test('returns null when command_topic is missing', () => {
-        expect(parseLight(variant((c) => delete c.command_topic))).toBeNull();
+    test('keeps the other topics of the light', () => {
+      store().setAvailability(light, bridge!, true);
+      store().setAvailability(light, device!, false);
+      expect(store().availability[light.id]).toEqual({ [bridge!]: true, [device!]: false });
+    });
+  });
+
+  describe('isLightOnline', () => {
+    const light = makeLight();
+    const [bridge, device] = light.availabilityTopics;
+
+    test('is online when every topic is online', () => {
+      store().setAvailability(light, bridge!, true);
+      store().setAvailability(light, device!, true);
+      expect(isLightOnline(light, store().availability)).toBe(true);
     });
 
-    test('falls back to unique_id when device is missing', () => {
-        const light = parseLight(variant((c) => delete c.device));
-        expect(light?.deviceId).toBe(uniqueId);
-        expect(light?.displayName).toBe(uniqueId);
+    test('is offline when any topic is offline', () => {
+      store().setAvailability(light, bridge!, true);
+      store().setAvailability(light, device!, false);
+      expect(isLightOnline(light, store().availability)).toBe(false);
     });
 
-    test('leaves availabilityTopic undefined when availability is missing', () => {
-        expect(parseLight(variant((c) => delete c.availability))?.availabilityTopic).toBeUndefined();
+    test('is offline while a topic is still unknown', () => {
+      store().setAvailability(light, bridge!, true);
+      expect(isLightOnline(light, store().availability)).toBe(false);
     });
-
-    test('drops unknown color modes', () => {
-        const payload = variant((c) => (c.supported_color_modes = ['xy', 'disco']));
-        expect(parseLight(payload)?.colorModes).toEqual(['xy']);
-    });
-
-    test('uses defaults for a minimal on/off light', () => {
-        const light = parseLight('{"command_topic":"a/set","state_topic":"a"}');
-        expect(light).toMatchObject({
-            brightnessScale: 255,
-            colorModes: [],
-            id: 'a',
-            supportsBrightness: false,
-        });
-        expect(light?.minMireds).toBeUndefined();
-    });
+  });
 });

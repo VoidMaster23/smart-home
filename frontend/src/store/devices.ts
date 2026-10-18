@@ -1,35 +1,75 @@
-import { LightConfigSchema, type Light } from './types';
+import { create } from 'zustand';
 
-export const parseLight = (payload: string): Light | null => {
-    let data;
-    try {
-        data = JSON.parse(payload);
-    } catch (error) {
-        console.error('Failed to parse light payload:', error);
-        return null;
-    }
+import type { Light, LightState } from './types';
 
-    const result = LightConfigSchema.safeParse(data);
-    if (!result.success) {
-        console.error('Invalid light config:', result.error);
-        return null;
-    }
+interface DevicesState {
+  connected: boolean;
+  lights: Record<string, Light>;
+  lightStates: Record<string, LightState>;
+  availability: Record<string, Record<string, boolean>>; // light id → topic → online
+  setConnected: (connected: boolean) => void;
+  upsertLight: (light: Light) => void;
+  removeLight: (configTopic: string) => void;
+  setAvailability: (light: Light, topic: string, online: boolean) => void;
+  applyState: (light: Light, state: LightState) => void;
+}
 
-    const config = result.data;
-    const id = config.unique_id ?? config.state_topic;
-    const [firstIdentifier] = [config.device?.identifiers].flat();
-
-    return {
-        availabilityTopic: config.availability?.[0]?.topic,
-        brightnessScale: config.brightness_scale,
-        colorModes: config.supported_color_modes,
-        commandTopic: config.command_topic,
-        deviceId: firstIdentifier ?? id,
-        displayName: config.device?.name ?? id,
-        id,
-        maxMireds: config.max_mireds,
-        minMireds: config.min_mireds,
-        stateTopic: config.state_topic,
-        supportsBrightness: config.brightness,
-    };
+const upsertLight = (state: DevicesState, light: Light) => {
+  return {
+    lights: {
+      ...state.lights,
+      [light.id]: light,
+    },
+  };
 };
+
+const removeLight = (state: DevicesState, configTopic: string) => {
+  const lightToRemove = Object.values(state.lights).find(
+    (light) => light.configTopic === configTopic,
+  );
+  if (!lightToRemove) {
+    return state;
+  }
+
+  const { [lightToRemove.id]: _, ...remainingLights } = state.lights;
+  const { [lightToRemove.id]: __, ...remainingStates } = state.lightStates;
+  const { [lightToRemove.id]: ___, ...remainingAvailability } = state.availability;
+  return {
+    availability: remainingAvailability,
+    lights: remainingLights,
+    lightStates: remainingStates,
+  };
+};
+
+const applyState = (state: DevicesState, light: Light, lightState: LightState) => {
+  return {
+    lightStates: {
+      ...state.lightStates,
+      [light.id]: { ...state.lightStates[light.id], ...lightState },
+    },
+  };
+};
+
+export const isLightOnline = (light: Light, availability: DevicesState['availability']) =>
+  light.availabilityTopics.every((topic) => availability[light.id]?.[topic] === true);
+
+const setAvailability = (state: DevicesState, light: Light, topic: string, online: boolean) => ({
+  availability: {
+    ...state.availability,
+    [light.id]: { ...state.availability[light.id], [topic]: online },
+  },
+});
+
+export const useDevicesStore = create<DevicesState>()((set) => ({
+  applyState: (light: Light, lightState: LightState) =>
+    set((state) => applyState(state, light, lightState)),
+  availability: {},
+  connected: false,
+  lights: {},
+  lightStates: {},
+  removeLight: (configTopic: string) => set((state) => removeLight(state, configTopic)),
+  setAvailability: (light, topic, online) =>
+    set((state) => setAvailability(state, light, topic, online)),
+  setConnected: (connected: boolean) => set({ connected }),
+  upsertLight: (light: Light) => set((state) => upsertLight(state, light)),
+}));
