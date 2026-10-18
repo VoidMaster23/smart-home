@@ -23,10 +23,15 @@ controller:
 	docker compose build controller && docker compose up  -d controller
 
 lint:
-	python3 generate_sources.py && cmake -S . -B build
-	clang-format --dry-run --Werror $(shell git ls-files '*.cc' '*.cpp' '*.h' '*.hpp')
-	run-clang-tidy -p build
-	cpplint --recursive src/
+	cd controller && python3 generate_sources.py && cmake -S . -B build
+	clang-format --dry-run --Werror $(shell git ls-files 'controller/*.cc' 'controller/*.cpp' 'controller/*.h' 'controller/*.hpp')
+	run-clang-tidy -p controller/build
+	cpplint --recursive controller/src
+	cd frontend && npm run lint
+
+clean:
+	docker compose down -v
+	rm -rf controller/build controller/sources.cmake controller/headers.cmake
 
 # 4. Stop
 down:
@@ -35,10 +40,5 @@ down:
 # 5. Enter Container
 shell:
 	docker compose exec controller bash
-
-# 6. Clean
-clean:
-	docker compose down -v
-	rm -rf src/build src/sources.cmake src/headers.cmake
 
 rebuild: clean build logs

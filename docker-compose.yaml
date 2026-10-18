@@ -31,8 +31,8 @@ services:
   
   controller:
       build:
-        context: .
-        dockerfile: src/Dockerfile
+        context: ./controller
+        dockerfile: Dockerfile
       container_name: home_controller
       restart: unless-stopped
       # Privileged is usually required for hardware access (GPU/Input)
@@ -58,7 +58,7 @@ services:
         # Map input devices (so your touchscreen works)
         - /dev/input:/dev/input
         # Map src to my local src
-        - ./src:/app/src
+        - ./controller/src:/app/src
       devices:
         # Pass the GPU through for smooth QML animations
         - /dev/dri:/dev/dri
