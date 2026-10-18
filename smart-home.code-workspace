@@ -1,0 +1,7 @@
+{
+  "folders": [
+    { "path": "frontend" },
+    { "path": "controller" },
+    { "path": ".", "name": "root" }
+  ]
+}
