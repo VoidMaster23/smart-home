@@ -4,7 +4,7 @@ services:
     container_name: mosquitto
     restart: unless-stopped
     volumes:
-      - ./infrastructure/mosquitto/config:/mosquitto/config
+      - ./infrastructure/mosquitto/config:/mosquitto/config:ro
       - ./infrastructure/mosquitto/data:/mosquitto/data
       - ./infrastructure/mosquitto/log:/mosquitto/log
     ports:

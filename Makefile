@@ -10,8 +10,6 @@ build:
 	@echo "🚀 Building and starting containers..."
 	docker compose up -d --build
 
-build/compile_commands.json:
-	python3 generate_sources.py && cmake -S . -B build
 
 # 2. Start (No rebuild)
 up:
@@ -24,8 +22,9 @@ logs_controller:
 controller:
 	docker compose build controller && docker compose up  -d controller
 
-lint: build/compile_commands.json
-	clang-format --dry-run --Werror $(shell git ls-files '*.cc' '*.cpp' '*.h')
+lint:
+	python3 generate_sources.py && cmake -S . -B build
+	clang-format --dry-run --Werror $(shell git ls-files '*.cc' '*.cpp' '*.h' '*.hpp')
 	run-clang-tidy -p build
 	cpplint --recursive src/
 
