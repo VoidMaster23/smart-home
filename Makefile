@@ -1,4 +1,4 @@
-.PHONY: all build up logs shell clean rebuild
+.PHONY: all build up logs shell clean rebuild lint
 
 # Default
 all: build up logs
@@ -9,6 +9,9 @@ build:
 	export DISPLAY=:0 && xhost +local:docker
 	@echo "🚀 Building and starting containers..."
 	docker compose up -d --build
+
+build/compile_commands.json:
+	python3 generate_sources.py && cmake -S . -B build
 
 # 2. Start (No rebuild)
 up:
@@ -21,8 +24,8 @@ logs_controller:
 controller:
 	docker compose build controller && docker compose up  -d controller
 
-lint:
-	clang-format --dry-run --Werror src/*.cpp src/include/*.h
+lint: build/compile_commands.json
+	clang-format --dry-run --Werror $(shell git ls-files '*.cc' '*.cpp' '*.h')
 	run-clang-tidy -p build
 	cpplint --recursive src/
 
