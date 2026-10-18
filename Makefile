@@ -21,6 +21,11 @@ logs_controller:
 controller:
 	docker compose build controller && docker compose up  -d controller
 
+lint:
+	clang-format --dry-run --Werror src/*.cpp src/include/*.h
+	run-clang-tidy -p build
+	cpplint --recursive src/
+
 # 4. Stop
 down:
 	docker compose down
