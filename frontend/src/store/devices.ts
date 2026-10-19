@@ -1,75 +1,75 @@
 import { create } from 'zustand';
 
-import type { Light, LightState } from './types';
+import type { Entity, EntityState } from './types';
 
 interface DevicesState {
   connected: boolean;
-  lights: Record<string, Light>;
-  lightStates: Record<string, LightState>;
+  entities: Record<string, Entity>;
+  entityStates: Record<string, EntityState>;
   availability: Record<string, Record<string, boolean>>; // light id → topic → online
   setConnected: (connected: boolean) => void;
-  upsertLight: (light: Light) => void;
-  removeLight: (configTopic: string) => void;
-  setAvailability: (light: Light, topic: string, online: boolean) => void;
-  applyState: (light: Light, state: LightState) => void;
+  upsertEntity: (entity: Entity) => void;
+  removeEntity: (configTopic: string) => void;
+  setAvailability: (entity: Entity, topic: string, online: boolean) => void;
+  applyState: (entity: Entity, state: EntityState) => void;
 }
 
-const upsertLight = (state: DevicesState, light: Light) => {
+const upsertEntity = (state: DevicesState, entity: Entity) => {
   return {
-    lights: {
-      ...state.lights,
-      [light.id]: light,
+    entities: {
+      ...state.entities,
+      [entity.id]: entity,
     },
   };
 };
 
-const removeLight = (state: DevicesState, configTopic: string) => {
-  const lightToRemove = Object.values(state.lights).find(
-    (light) => light.configTopic === configTopic,
+const removeEntity = (state: DevicesState, configTopic: string) => {
+  const entityToRemove = Object.values(state.entities).find(
+    (entity) => entity.configTopic === configTopic,
   );
-  if (!lightToRemove) {
+  if (!entityToRemove) {
     return state;
   }
 
-  const { [lightToRemove.id]: _, ...remainingLights } = state.lights;
-  const { [lightToRemove.id]: __, ...remainingStates } = state.lightStates;
-  const { [lightToRemove.id]: ___, ...remainingAvailability } = state.availability;
+  const { [entityToRemove.id]: _, ...remainingEntities } = state.entities;
+  const { [entityToRemove.id]: __, ...remainingStates } = state.entityStates;
+  const { [entityToRemove.id]: ___, ...remainingAvailability } = state.availability;
   return {
     availability: remainingAvailability,
-    lights: remainingLights,
-    lightStates: remainingStates,
+    entities: remainingEntities,
+    entityStates: remainingStates,
   };
 };
 
-const applyState = (state: DevicesState, light: Light, lightState: LightState) => {
+const applyState = (state: DevicesState, entity: Entity, entityState: EntityState) => {
   return {
-    lightStates: {
-      ...state.lightStates,
-      [light.id]: { ...state.lightStates[light.id], ...lightState },
+    entityStates: {
+      ...state.entityStates,
+      [entity.id]: { ...state.entityStates[entity.id], ...entityState },
     },
   };
 };
 
-export const isLightOnline = (light: Light, availability: DevicesState['availability']) =>
-  light.availabilityTopics.every((topic) => availability[light.id]?.[topic] === true);
+export const isEntityOnline = (entity: Entity, availability: DevicesState['availability']) =>
+  entity.availabilityTopics.every((topic) => availability[entity.id]?.[topic] === true);
 
-const setAvailability = (state: DevicesState, light: Light, topic: string, online: boolean) => ({
+const setAvailability = (state: DevicesState, entity: Entity, topic: string, online: boolean) => ({
   availability: {
     ...state.availability,
-    [light.id]: { ...state.availability[light.id], [topic]: online },
+    [entity.id]: { ...state.availability[entity.id], [topic]: online },
   },
 });
 
 export const useDevicesStore = create<DevicesState>()((set) => ({
-  applyState: (light: Light, lightState: LightState) =>
-    set((state) => applyState(state, light, lightState)),
+  applyState: (entity: Entity, entityState: EntityState) =>
+    set((state) => applyState(state, entity, entityState)),
   availability: {},
   connected: false,
-  lights: {},
-  lightStates: {},
-  removeLight: (configTopic: string) => set((state) => removeLight(state, configTopic)),
-  setAvailability: (light, topic, online) =>
-    set((state) => setAvailability(state, light, topic, online)),
+  entities: {},
+  entityStates: {},
+  removeEntity: (configTopic: string) => set((state) => removeEntity(state, configTopic)),
+  setAvailability: (entity: Entity, topic: string, online: boolean) =>
+    set((state) => setAvailability(state, entity, topic, online)),
   setConnected: (connected: boolean) => set({ connected }),
-  upsertLight: (light: Light) => set((state) => upsertLight(state, light)),
+  upsertEntity: (entity: Entity) => set((state) => upsertEntity(state, entity)),
 }));

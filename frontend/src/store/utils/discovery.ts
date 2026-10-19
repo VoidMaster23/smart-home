@@ -1,4 +1,12 @@
-import { AvailabilitySchema, LightConfigSchema, LightStateSchema, type Light } from '../types';
+import {
+  AvailabilitySchema,
+  LightConfigSchema,
+  LightStateSchema,
+  type EntityKind,
+  type Entity,
+  type EntityState,
+  type Light,
+} from '../types';
 
 type ParseLightParams = {
   configTopic: string;
@@ -33,6 +41,7 @@ export const parseLight = ({ configTopic, payload }: ParseLightParams): Light | 
     deviceId: firstIdentifier ?? id,
     displayName: config.device?.name ?? id,
     id,
+    kind: 'light',
     maxMireds: config.max_mireds,
     minMireds: config.min_mireds,
     stateTopic: config.state_topic,
@@ -74,3 +83,13 @@ export const parseAvailability = (payload: string) => {
   }
   return result.data.state === 'online';
 };
+
+export const configParsers = { light: parseLight } satisfies Record<
+  string,
+  (params: ParseLightParams) => Entity | null
+>;
+
+export const stateParsers = { light: parseLightState } satisfies Record<
+  EntityKind,
+  (payload: string) => EntityState | null
+>;
