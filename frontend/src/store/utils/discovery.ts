@@ -1,4 +1,4 @@
-import { LightConfigSchema, type Light } from '../types';
+import { AvailabilitySchema, LightConfigSchema, LightStateSchema, type Light } from '../types';
 
 type ParseLightParams = {
   configTopic: string;
@@ -38,4 +38,39 @@ export const parseLight = ({ configTopic, payload }: ParseLightParams): Light | 
     stateTopic: config.state_topic,
     supportsBrightness: config.brightness,
   };
+};
+
+export const parseLightState = (payload: string) => {
+  let data;
+  try {
+    data = JSON.parse(payload);
+  } catch (error) {
+    console.error('Failed to parse light state payload:', error);
+    return null;
+  }
+
+  const result = LightStateSchema.safeParse(data);
+  if (!result.success) {
+    console.error('Invalid light state:', result.error);
+    return null;
+  }
+
+  return result.data;
+};
+
+export const parseAvailability = (payload: string) => {
+  let data;
+  try {
+    data = JSON.parse(payload);
+  } catch (error) {
+    console.error('Failed to parse availability payload:', error);
+    return null;
+  }
+
+  const result = AvailabilitySchema.safeParse(data);
+  if (!result.success) {
+    console.error('Invalid availability:', result.error);
+    return null;
+  }
+  return result.data.state === 'online';
 };

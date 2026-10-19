@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { parseLight } from './discovery';
+import { parseAvailability, parseLightState } from './discovery';
 import { mockDeviceConfigTopic, mockDevicePayload } from './mockData';
+import { mockStatePayload } from './mockData';
 
 const uniqueId = '0x00e07291ff75002e_light_zigbee2mqtt';
 
@@ -87,4 +89,55 @@ describe('parseLight', () => {
     });
     expect(light?.minMireds).toBeUndefined();
   });
+});
+
+describe('parseLightState', () => {
+  test('keeps the typed fields of a real payload', () => {
+    expect(parseLightState(mockStatePayload)).toEqual({
+      brightness: 254,
+      color: { h: 123, s: 100, x: 0.17, y: 0.7 },
+      color_mode: 'xy',
+      color_temp: 153,
+      state: 'ON',
+    });
+  });
+
+  test('accepts a partial update', () => {
+    expect(parseLightState('{"brightness":100}')).toEqual({ brightness: 100 });
+  });
+
+  test.each(['', 'garbage', 'null', '42', '[]'])('returns null for %j', (payload) => {
+    expect(parseLightState(payload)).toBeNull();
+  });
+
+  test('returns null for a wrong type', () => {
+    expect(parseLightState('{"brightness":"high"}')).toBeNull();
+  });
+
+  test('returns null for an unknown state value', () => {
+    expect(parseLightState('{"state":"TOGGLE"}')).toBeNull();
+  });
+
+  test('drops an unknown color mode but keeps the rest', () => {
+    expect(parseLightState('{"brightness":100,"color_mode":"plaid"}')).toStrictEqual({
+      brightness: 100,
+    });
+  });
+});
+
+describe('parseAvailability', () => {
+  test('online', () => {
+    expect(parseAvailability('{"state":"online"}')).toBe(true);
+  });
+
+  test('offline', () => {
+    expect(parseAvailability('{"state":"offline"}')).toBe(false);
+  });
+
+  test.each(['', 'garbage', 'online', '{}', '{"state":"maybe"}'])(
+    'returns null for %j',
+    (payload) => {
+      expect(parseAvailability(payload)).toBeNull();
+    },
+  );
 });

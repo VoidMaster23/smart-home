@@ -1,146 +1,158 @@
-# 🧠 The C++ Smart Home Controller
+# 🧠 Smart Home
 
-Yo. This is a bare-metal, smart home system written in **C++20**.
-I could have gone for home assistant. BUT I chose to rather build this thing brick by brick
+Yo. This is a home-built smart home system running on a Raspberry Pi 5.
+I could have gone for Home Assistant. BUT I chose to build this thing brick by brick.
 
-This project connects Zigbee lights (IKEA, Hue, etc.) to a custom-built C++ control loop via MQTT. It's Dockerized, so you don't have to deal with dependency hell.
+Zigbee lights (IKEA Kajplats, Hue, …) talk to Zigbee2MQTT, everything meets on an MQTT broker, a React dashboard controls it all from any browser, and a modern C++ service will handle rooms and automations.
 
-## 🏗 The Architecture
-We running a "Holy Trinity" setup:
-1.  **The Ears (Zigbee2MQTT):** Translates radio waves from zigbee enabled devices.
-2.  **The Messenger (Mosquitto):** The broker that passes notes between connected devices.
-3.  **The Brain (C++):** Custom binary that makes the decisions.
+> 🚧 **Mid-rebuild.** The old Qt UI is being replaced. The React dashboard is in progress, and the C++ controller is still the old Qt code until it gets gutted (see [Roadmap](#-roadmap)).
 
-## 🎒 Prerequisites
-You barely need anything.
-* A computer (I use a rasperry pi since i dont wanna have my PC on all the time )
-* A Zigbee USB Stick (use only if you need to use zigbee, otherwise tyou shoudl be able to get away with plain and simple MQTT instead)
-* Docker & Docker Compose (`curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh`)
+## 🏗 Architecture
 
-## 📂 The Structure
-We use a "CppDevBase" pattern. You just drop files, and the system finds them.
+```text
+ Zigbee devices ──radio──► Zigbee2MQTT ──┐
+                                         ▼
+                              Mosquitto (MQTT broker)
+                              :1883 TCP   :9001 WebSockets
+                                ▲               ▲
+              C++ controller ───┘               └─── React dashboard
+         (rooms + automations, WIP)          (any browser: kiosk, phone, laptop)
+```
+
+1. **Zigbee2MQTT** translates Zigbee radio into MQTT. It is the source of truth for device state.
+2. **Mosquitto** passes messages between everything.
+3. **React dashboard** talks MQTT directly over WebSockets. No custom backend API.
+4. **C++ controller** (coming back headless): rooms and automations on the MQTT bus.
+
+Key ideas:
+
+- **Devices announce themselves** with Home Assistant's MQTT discovery format (`homeassistant/…/config`). Nothing is hardcoded per device.
+- **Capability-driven UI.** A light gets a brightness slider, color-temperature presets or a color picker only if it says it supports them. A new bulb model needs zero code.
+- **Rooms are ours**, not Zigbee2MQTT groups (group state is unreliable).
+- **No optimistic UI.** Buttons send commands; the UI only changes when the device reports its new state.
+
+## 📂 Structure
 
 ```text
 smart-home/
-├── Makefile             # The command center (build, logs, shell)
-├── generate_sources.py  # Python script that auto-updates CMake lists
-├── docker-compose.yaml  # Infrastructure definition
-└── src/
-    ├── CMakeLists.txt   # The build recipe
-    ├── main.cpp         # The entry point
-    ├── include/         # Drop your .hpp headers here
-    └── [Your Code]      # Drop .cpp files anywhere here## 
+├── controller/          # C++ service (CMake, Dockerfile, clang-format/tidy)
+├── frontend/            # React dashboard (Vite + TypeScript)
+│   └── src/store/       # Zustand store, types, discovery parsing (+ tests)
+├── infrastructure/
+│   ├── mosquitto/       # Broker config (data/log are gitignored)
+│   └── zigbee2mqtt/     # Z2M data + configuration.yaml (gitignored)
+├── docker-compose.yaml
+├── Makefile
+└── smart-home.code-workspace   # open this in VS Code
+```
 
-## 🚀 How to Run This Mf
-We built this to be clone-and-go.
+## 🎒 Prerequisites
 
-### 1. Clone the Repo
+- A Raspberry Pi (or any always-on Linux box)
+- A Zigbee USB dongle
+- Docker + Docker Compose
+- Node 24 for the frontend
+- [Tailscale](https://tailscale.com/) if you want the dashboard outside the house
+
+## 🚀 Setup
+
+### 1. Clone
+
 ```bash
-git clone 
+git clone https://github.com/VoidMaster23/smart-home.git
 cd smart-home
-````
+```
 
-### 2. Plug in the hardware
-Plug in your zigbee stick to your computer. I used a USB extension cable because i was getting connection issues. This is optional though. I just think I had gaaaaang interference.
+### 2. Find the Zigbee dongle
 
+Plug in the stick (a USB extension cable helps against interference), then:
 
-### 3. Identify the dongle
 ```bash
 ls -l /dev/serial/by-id/
 ```
-This will output something like: 
-```bash
- usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0 ⇒ ../../ttyUSB0
- ```
 
- Update the `devices` section in the `docker-compose.yaml` 
-to have a be something like:
- ```yml
-  devices:
-      - /dev/serial/by-id/<left-side-of-output>:/dev/<the identified port, mine is on ttyUSB0>
- ```
+Put the result in the `devices` section of `zigbee2mqtt` in `docker-compose.yaml`:
 
-
-
-### 4. COnfigure Zigbee
-Ngl i was too lazy to clean up my configuration file
-
-So, create the file at `infrastructure/zigbee2mqtt/data/configuration.yaml`
-
-and paste this mf in:
 ```yaml
-# Home Assistant integration (MQTT discovery)
-homeassistant: false
-
-# Allow new devices to join
-permit_join: true
-
-# MQTT Broker Settings
-mqtt:
-  base_topic: zigbee2mqtt
-  server: 'mqtt://mosquitto:1883'
-
-# Serial Adapter Settings
-serial:
-  port: /dev/<your port>
-  adapter: zstack
-
-# Frontend (The Dashboard)
-frontend:
-  port: 8080
-
+devices:
+  - /dev/serial/by-id/<your-dongle>:/dev/ttyUSB0
 ```
 
+### 3. Configure Zigbee2MQTT
 
+`infrastructure/zigbee2mqtt/data/configuration.yaml` is gitignored (it holds network keys), so create it yourself. The parts this project relies on:
 
- ### 5. Let it riiiiiiop
-run the following mf:
- ```bash
-make build # this handles compilation and starts the containers
- ```
+```yaml
+mqtt:
+  base_topic: zigbee2mqtt
+  server: mqtt://mosquitto:1883
 
- if you want to see logs for you can just run
- ```bash
- docker compose logs -f <service>
- ```
+serial:
+  port: /dev/ttyUSB0
+  adapter: zstack
 
- At this point you need to go to http://<localhost or hostname of your pi if using one>:8080
- 1. click "permit join"
- 2. put your zigbee devices in pairing mode (to be fair, I only tested this on lights but i mean surely this should work for other stuff)
- 3. code to your hearts content. Now tyou can just run a `docker compose up -d --build` to make sure everything is setup correctly
- **Note**:  Edit files in src/. The CMake system automatically finds new .cpp files, so just create them and run docker compose up -d --build to recompile.
+frontend:
+  enabled: true
+  port: 8080
 
+# The dashboard discovers devices through HA MQTT discovery.
+homeassistant:
+  enabled: true
 
+# Per-device online/offline (otherwise only the bridge reports availability).
+availability:
+  enabled: true
+```
 
-## 🛠 Technical Debt & Future Refactors
-This project is currently in the prototype phase. The following items are identified for future architectural hardening and modernization to align with C++20 and professional Qt standards:
+Check the [Z2M configuration docs](https://www.zigbee2mqtt.io/guide/configuration/) for the rest (network keys, channel). Don't create Z2M groups: rooms are handled by this project.
 
-1. Memory & Ownership
- - [ ] Transition to Stack Allocation: Replace heap-allocated UI components (new QLabel) with member variables to satisfy clang-tidy (gsl::owner) and improve cache locality.
+### 4. Start the broker and Zigbee2MQTT
 
-- [ ] Smart Pointer Migration: Replace remaining raw pointers for non-Qt objects with `std::unique_ptr` or `std::shared_ptr`.
+```bash
+docker compose up -d mqtt zigbee2mqtt
+```
 
-- [ ] Virtual Destructors: Audit base classes (e.g., Device, Sensor) to ensure destructors are virtual, preventing partial destruction during polymorphic deletes.
+> ⚠️ Don't run `make build` / plain `docker compose up` for now: that also starts the old Qt controller.
 
-2. Type Safety & Performance
-- [ ] Const Correctness: Audit all "getters" and observer methods to mark them as const and [[nodiscard]].
+Logs: `docker compose logs -f zigbee2mqtt`. After changing `configuration.yaml`: `docker compose restart zigbee2mqtt`.
 
-- [ ] String Optimization: Replace `std::string` or QString pass-by-value with `std::string_view` (C++17/20) for read-only device names and identifiers.
+### 5. Pair devices
 
-- [ ] Explicit Casting: Replace `dynamic_cast` with `qobject_cast` for QObject-derived types to bypass RTTI overhead and improve safety across library boundaries.
+Open `http://<pi-hostname>:8080` (the Z2M frontend), click **Permit join**, and put your devices in pairing mode.
 
-3. Modern C++20 Patterns
-- [ ] Concepts & Constraints: Implement C++20 Concepts for template-based device managers to provide better compile-time errors.
+### 6. Run the dashboard
 
-- [ ] Designated Initializers: Refactor device configuration structs to use C++20 designated initialization (.name = "Kitchen") for better readability.
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-- [ ] Signal/Slot Modernization: Ensure all connect() calls use the pointer-to-member-function syntax for compile-time signature verification.
+The dashboard connects to the broker at `ws://<same host as the page>:9001`, so the same build works on the kiosk, on the LAN and over Tailscale.
 
-4. UI/UX Refinements
-- [ ] Text Elision: Implement a custom ElidedLabel using `QFontMetrics::elidedText` to handle long device names gracefully in constrained layouts.
+## 🛠 Development
 
-- [ ] High-DPI Scaling: Audit layouts to ensure they utilize QLayout scaling rather than fixed pixel dimensions.
+Open `smart-home.code-workspace` in VS Code (works over Remote-SSH on the Pi). Install the [Oxc extension](https://marketplace.visualstudio.com/items?itemName=oxc.oxc-vscode) for lint + format on save.
 
-- [ ] stop copying the entire src folder to the runner app
-- [ ] fix weird behavior where on startup the we set max brightness and lights on instead of getting that from state 
-- [ ] fuck ass infinite update loop lol but its less often
+Frontend (`frontend/`):
+
+| Command             | What                         |
+| ------------------- | ---------------------------- |
+| `npm run dev`       | Dev server                   |
+| `npm test`          | Vitest                       |
+| `npm run lint`      | oxlint                       |
+| `npm run fix`       | oxlint --fix + oxfmt         |
+| `npm run fmt:check` | Check formatting (CI style)  |
+| `npm run build`     | Typecheck + production build |
+
+Style: frontend uses oxlint + oxfmt; C++ follows the [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html) completely (`.clang-format`, clang-tidy, cpplint). `make lint` runs everything, but currently fails on the old Qt code.
+
+## 🗺 Roadmap
+
+- [x] **Phase 0:** MQTT over WebSockets, HA discovery, Tailscale, monorepo layout
+- [ ] **Phase 1:** React dashboard: device store ✅, MQTT client, light controls, Home screen (clock, weather, news), nginx container for the kiosk
+- [ ] **Phase 2:** Gut Qt. Headless C++23 controller (Paho MQTT, `std::expected`, `std::jthread`)
+- [ ] **Phase 3:** Rooms (`rooms.json`, aggregated room state, room commands)
+- [ ] **Phase 4:** Automations (schedules, sensor rules)
+
+The old Qt version lives on the `archive/qt-ui` tag.
