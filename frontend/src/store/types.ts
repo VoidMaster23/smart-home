@@ -22,6 +22,8 @@ export const LightConfigSchema = z.object({
   unique_id: z.string().optional(),
 });
 
+export const AvailabilitySchema = z.object({ state: z.enum(['online', 'offline']) });
+
 type Device = {
   id: string;
   displayName: string;
@@ -55,6 +57,25 @@ export type LightState = {
   color_temp?: number;
   color?: { x?: number; y?: number; h?: number; s?: number };
 };
+
+export const LightStateSchema = z
+  .object({
+    brightness: z.number().optional(),
+    color: z
+      .object({
+        h: z.number().optional(),
+        s: z.number().optional(),
+        x: z.number().optional(),
+        y: z.number().optional(),
+      })
+      .optional(),
+    color_mode: z.enum(COLOR_MODES).optional().catch(undefined),
+    color_temp: z.number().optional(),
+    state: z.enum(['ON', 'OFF']).optional(),
+  })
+  .transform(({ color_mode, ...rest }) => {
+    return color_mode === undefined ? rest : { color_mode, ...rest };
+  });
 
 export type Light = Device & {
   supportsBrightness: boolean;
