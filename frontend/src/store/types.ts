@@ -24,6 +24,11 @@ export const LightConfigSchema = z.object({
 
 export const AvailabilitySchema = z.object({ state: z.enum(['online', 'offline']) });
 
+const COMPONENTS = ['light'] as const;
+export type EntityKind = (typeof COMPONENTS)[number];
+export const isEntityKind = (value: unknown): value is EntityKind =>
+  typeof value === 'string' && (COMPONENTS as readonly string[]).includes(value);
+
 type Device = {
   id: string;
   displayName: string;
@@ -32,6 +37,7 @@ type Device = {
   availabilityTopics: string[];
   commandTopic: string;
   configTopic: string;
+  kind: EntityKind;
 };
 
 const COLOR_MODES = [
@@ -83,4 +89,8 @@ export type Light = Device & {
   minMireds?: number;
   maxMireds?: number;
   colorModes: ColorMode[];
+  kind: 'light';
 };
+
+export type Entity = Light; // later: | Sensor | Switch
+export type EntityState = LightState; // later: | SensorStat

@@ -8,6 +8,7 @@
   "rules": {
     "react/rules-of-hooks": "error",
     "react/exhaustive-deps": "warn",
+    "react/react-in-jsx-scope": "off",
     "typescript/consistent-type-imports": "error",
     "typescript/no-explicit-any": "error",
     "eqeqeq": "error",
