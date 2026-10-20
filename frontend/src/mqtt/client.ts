@@ -48,14 +48,14 @@ const onMessage = (topic: string, message: Buffer) => {
 
   const entities = Object.values(useDevicesStore.getState().entities);
 
-  const stateEntity = entities.find((e) => e.stateTopic === topic);
-
-  if (stateEntity) {
-    const deviceState = stateParsers[stateEntity.kind](payload);
-    if (deviceState) {
-      applyState(stateEntity, deviceState);
-    }
-  }
+  entities
+    .filter((e) => e.stateTopic === topic)
+    .forEach((stateEntity) => {
+      const deviceState = stateParsers[stateEntity.kind](payload);
+      if (deviceState) {
+        applyState(stateEntity, deviceState);
+      }
+    });
 
   const availabilityEntities = entities.filter((e) => e.availabilityTopics.includes(topic));
   if (availabilityEntities.length > 0) {
